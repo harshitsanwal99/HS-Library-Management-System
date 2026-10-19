@@ -2300,37 +2300,7 @@ body {
     height: 17px;
 }
 
-.auth-options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    margin: 1.15rem 0 1.5rem 0;
-}
 
-.checkbox-label {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-size: 0.84rem;
-    color: #C4D6C8;
-    cursor: pointer;
-}
-
-.checkbox-label input[type="checkbox"] {
-    accent-color: #496B52;
-    width: 15px;
-    height: 15px;
-    cursor: pointer;
-}
-
-.default-cred-hint {
-    font-size: 0.72rem;
-    color: #9EB5A4;
-    background: rgba(145, 198, 154, 0.08);
-    border: 1px dashed rgba(145, 198, 154, 0.22);
-    border-radius: var(--radius-sm);
-    padding: 0.35rem 0.6rem;
-}
 
 .auth-submit-btn {
     height: 48px;
@@ -3182,7 +3152,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    margin: 0.35rem 0 1.15rem 0;
+    margin: 1.15rem 0 1.5rem 0;
     font-size: 0.82rem;
 }
 
@@ -3322,5 +3292,250 @@ body {
     border-color: var(--success-border);
     font-weight: 600;
 }
+
+/* ==========================================================================
+   TQM PROJECT Q09: QUALITY ASSURANCE & DEFECT TRACKER STYLES
+   ========================================================================== */
+
+/* Severity Badges */
+.badge-severity-critical {
+    background-color: var(--danger-bg);
+    color: var(--danger);
+    border: 1px solid var(--danger-border);
+    font-weight: 700;
+}
+
+.badge-severity-high {
+    background-color: #FFF3E0;
+    color: #D35400;
+    border: 1px solid #FFE0B2;
+    font-weight: 600;
+}
+
+.badge-severity-medium {
+    background-color: var(--warning-bg);
+    color: var(--warning);
+    border: 1px solid var(--warning-border);
+}
+
+.badge-severity-low {
+    background-color: var(--primary-subtle);
+    color: var(--primary);
+    border: 1px solid var(--primary-border);
+}
+
+[data-theme="dark"] .badge-severity-high {
+    background-color: rgba(211, 84, 0, 0.2);
+    color: #F39C12;
+    border-color: rgba(211, 84, 0, 0.4);
+}
+
+/* Status Badges */
+.badge-status-open {
+    background-color: #FDEDEC;
+    color: #C0392B;
+    border: 1px solid #FADBD8;
+}
+
+.badge-status-in_progress {
+    background-color: #FEF9E7;
+    color: #B7950B;
+    border: 1px solid #F9E79F;
+}
+
+.badge-status-resolved {
+    background-color: var(--success-bg);
+    color: var(--success);
+    border: 1px solid var(--success-border);
+}
+
+.badge-status-closed {
+    background-color: var(--bg-muted);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+}
+
+[data-theme="dark"] .badge-status-open {
+    background-color: rgba(192, 57, 43, 0.2);
+    color: #E74C3C;
+    border-color: rgba(192, 57, 43, 0.4);
+}
+
+[data-theme="dark"] .badge-status-in_progress {
+    background-color: rgba(183, 149, 11, 0.2);
+    color: #F1C40F;
+    border-color: rgba(183, 149, 11, 0.4);
+}
+
+/* Defect Code Badge */
+.bug-id-tag {
+    font-family: monospace;
+    font-size: 0.78rem;
+    font-weight: 700;
+    padding: 0.15rem 0.45rem;
+    border-radius: var(--radius-sm);
+    background-color: var(--bg-muted);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+/* KPI Subtext and Row */
+.kpi-val-row {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    margin-top: 0.25rem;
+}
+
+.kpi-subtext {
+    font-size: 0.76rem;
+    color: var(--text-muted);
+    font-weight: 500;
+}
+
+/* Badge Pill */
+.badge-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.2rem 0.65rem;
+    border-radius: var(--radius-full);
+    font-size: 0.73rem;
+    font-weight: 600;
+    background-color: var(--primary-subtle);
+    color: var(--primary);
+    border: 1px solid var(--primary-border);
+}
+
+.badge-dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+}
+
+.badge-dot-success {
+    background-color: var(--success);
+}
+
+/* TQM Architecture Grid */
+.tqm-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: 1.25rem;
+}
+
+.tqm-card {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    box-shadow: var(--shadow-xs);
+    transition: transform var(--transition-fast), box-shadow var(--transition-fast);
+}
+
+.tqm-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-sm);
+    border-color: var(--primary-border);
+}
+
+.tqm-card-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.tqm-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: var(--radius-sm);
+    background-color: var(--primary-subtle);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.tqm-icon svg {
+    width: 18px;
+    height: 18px;
+}
+
+.tqm-card-header h4 {
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--text-primary);
+}
+
+.tqm-desc {
+    font-size: 0.82rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 1rem 0;
+}
+
+.tqm-tag {
+    font-size: 0.72rem;
+    font-weight: 600;
+    color: var(--primary);
+    background-color: var(--primary-subtle);
+    border: 1px solid var(--primary-border);
+    border-radius: var(--radius-full);
+    padding: 0.25rem 0.6rem;
+    display: inline-block;
+    align-self: flex-start;
+}
+
+/* Defect Meta Box in Modals */
+.defect-meta-box {
+    background-color: var(--bg-muted);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: 0.85rem 1rem;
+}
+
+/* Table Compact */
+.table-compact th,
+.table-compact td {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.8rem;
+}
+
+/* Button Loading State */
+.btn.is-loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.75;
+}
+
+.btn.is-loading .btn-text {
+    visibility: hidden;
+}
+
+.btn.is-loading::after {
+    content: '';
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    top: 50%;
+    left: 50%;
+    margin-top: -7px;
+    margin-left: -7px;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: btn-spin 0.6s linear infinite;
+}
+
+@keyframes btn-spin {
+    to { transform: rotate(360deg); }
+}
+
 
 
