@@ -1,0 +1,1898 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HS Library — Multi-Library Management System</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <!-- Lucide Icons CDN -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- ================================================================= -->
+    <!-- AUTHENTICATION SCREEN (LOGIN & REGISTER) -->
+    <!-- Displayed when librarian is not signed in -->
+    <!-- ================================================================= -->
+    <div class="auth-screen" id="authScreen">
+        <div class="auth-ambient-glow"></div>
+        <div class="auth-container">
+            <!-- Auth Brand Header -->
+            <div class="auth-header">
+                <div class="auth-brand-icon">
+                    <i data-lucide="book-marked"></i>
+                </div>
+                <h1 class="auth-brand-title">HS Library</h1>
+                <p class="auth-brand-subtitle">Enterprise Multi-Library Management System</p>
+            </div>
+
+            <!-- Glass Card -->
+            <div class="auth-card">
+                <!-- Auth Tabs (Sign In / Register) -->
+                <div class="auth-tabs" role="tablist">
+                    <button class="auth-tab-btn active" id="tabSignInBtn" type="button" role="tab" aria-selected="true">Sign In to Library</button>
+                    <button class="auth-tab-btn" id="tabRegisterBtn" type="button" role="tab" aria-selected="false">Register New Library</button>
+                </div>
+
+                <!-- 1. SIGN IN FORM -->
+                <div class="auth-tab-content active" id="authSignInPane">
+                    <form id="loginForm" novalidate>
+                        <div class="form-group">
+                            <label for="loginLibraryName" class="required">Library Name</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="landmark" class="input-icon"></i>
+                                <input type="text" id="loginLibraryName" class="form-input" placeholder="e.g. HS Central Library" required autocomplete="organization">
+                            </div>
+                            <span class="field-hint">Specify your institution or campus library.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginEmail" class="required">Librarian Email</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="mail" class="input-icon"></i>
+                                <input type="email" id="loginEmail" name="email" class="form-input" placeholder="librarian@hslibrary.edu" required autocomplete="username">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="loginPassword" class="required">Password</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="lock" class="input-icon"></i>
+                                <input type="password" id="loginPassword" name="password" class="form-input" placeholder="••••••••••••" required autocomplete="current-password">
+                                <button type="button" class="password-toggle-btn" id="toggleLoginPasswordBtn" aria-label="Show or hide password">
+                                    <i data-lucide="eye" id="loginEyeIcon"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="auth-options">
+                            <div class="auth-remember-row">
+                                <label class="checkbox-label" for="loginRememberMe">
+                                    <input type="checkbox" id="loginRememberMe" name="rememberMe" checked>
+                                    <span>Remember me</span>
+                                </label>
+                                <a href="#" id="linkForgotPassword" class="auth-link">Forgot Password?</a>
+                            </div>
+                            <span class="default-cred-hint" title="Default Initial Library Credentials">
+                                Demo: HS Central Library (librarian@hslibrary.edu / Admin@123)
+                            </span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full btn-lg auth-submit-btn" id="loginSubmitBtn">
+                            <i data-lucide="log-in"></i>
+                            <span>Sign In to Library</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-footer-note">
+                        <span>New library institution?</span>
+                        <a href="#" id="linkSwitchRegister">Register your library here</a>
+                    </div>
+                </div>
+
+                <!-- 2. REGISTER NEW LIBRARY FORM -->
+                <div class="auth-tab-content" id="authRegisterPane">
+                    <form id="registerForm" novalidate>
+                        <div class="form-group">
+                            <label for="regLibraryName" class="required">New Library Name</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="landmark" class="input-icon"></i>
+                                <input type="text" id="regLibraryName" class="form-input" placeholder="e.g. St. Xavier Technical Institute" required autocomplete="organization">
+                            </div>
+                            <span class="field-hint">Unique name for your institutional branch.</span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="regLibrarianName" class="required">Librarian Full Name</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="user" class="input-icon"></i>
+                                <input type="text" id="regLibrarianName" class="form-input" placeholder="e.g. Dr. Arthur Pendelton" required autocomplete="name">
+                            </div>
+                        </div>
+
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="regEmail" class="required">Official Email Address</label>
+                                <div class="input-with-icon">
+                                    <i data-lucide="mail" class="input-icon"></i>
+                                    <input type="email" id="regEmail" class="form-input" placeholder="arthur@stxavier.edu" required autocomplete="email">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="regPhone">Contact Phone (Optional)</label>
+                                <div class="input-with-icon">
+                                    <i data-lucide="phone" class="input-icon"></i>
+                                    <input type="tel" id="regPhone" class="form-input" placeholder="+1 555-0199" autocomplete="tel">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-row-2">
+                            <div class="form-group">
+                                <label for="regPassword" class="required">Password</label>
+                                <div class="input-with-icon">
+                                    <i data-lucide="lock" class="input-icon"></i>
+                                    <input type="password" id="regPassword" class="form-input" placeholder="Min. 8 characters" required autocomplete="new-password">
+                                    <button type="button" class="password-toggle-btn" id="toggleRegPasswordBtn" aria-label="Show or hide password">
+                                        <i data-lucide="eye" id="regEyeIcon"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="regConfirmPassword" class="required">Confirm Password</label>
+                                <div class="input-with-icon">
+                                    <i data-lucide="shield-check" class="input-icon"></i>
+                                    <input type="password" id="regConfirmPassword" class="form-input" placeholder="Re-enter password" required autocomplete="new-password">
+                                </div>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full btn-lg auth-submit-btn" id="registerSubmitBtn">
+                            <i data-lucide="building-2"></i>
+                            <span>Register Library & Create Account</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-footer-note">
+                        <span>Already registered?</span>
+                        <a href="#" id="linkSwitchSignIn">Sign in to your library</a>
+                    </div>
+                </div>
+
+                <!-- 3. FORGOT PASSWORD PANE -->
+                <div class="auth-tab-content" id="authForgotPane">
+                    <div class="auth-pane-intro">
+                        <div class="auth-pane-icon">
+                            <i data-lucide="key-round"></i>
+                        </div>
+                        <h3 class="auth-pane-title">Password Recovery</h3>
+                        <p class="auth-pane-desc">Enter your registered institutional email to receive secure password reset instructions.</p>
+                    </div>
+
+                    <form id="forgotPasswordForm" novalidate>
+                        <div class="form-group">
+                            <label for="forgotEmail" class="required">Registered Librarian Email</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="mail" class="input-icon"></i>
+                                <input type="email" id="forgotEmail" name="email" class="form-input" placeholder="librarian@hslibrary.edu" required autocomplete="username">
+                            </div>
+                            <span class="error-msg" id="forgotEmailError"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full btn-lg auth-submit-btn" id="forgotSubmitBtn">
+                            <i data-lucide="send"></i>
+                            <span>Generate Reset Link</span>
+                        </button>
+                    </form>
+
+                    <!-- Safe Local Dev Workflow Card -->
+                    <div class="dev-reset-card hidden" id="devResetNotice">
+                        <div class="dev-reset-header">
+                            <i data-lucide="terminal"></i>
+                            <span>Development Testing Workflow</span>
+                        </div>
+                        <p class="dev-reset-text">A secure, single-use reset token was generated. Click below to proceed to password reset:</p>
+                        <button type="button" class="btn btn-outline btn-sm w-full mt-2" id="devOpenResetBtn">
+                            <i data-lucide="arrow-right"></i>
+                            <span>Proceed to Reset Password</span>
+                        </button>
+                    </div>
+
+                    <div class="auth-footer-note">
+                        <span>Remembered your password?</span>
+                        <a href="#" id="linkForgotBackToLogin">Back to Sign In</a>
+                    </div>
+                </div>
+
+                <!-- 4. SET NEW PASSWORD PANE -->
+                <div class="auth-tab-content" id="authResetPane">
+                    <div class="auth-pane-intro">
+                        <div class="auth-pane-icon success-icon">
+                            <i data-lucide="shield-check"></i>
+                        </div>
+                        <h3 class="auth-pane-title">Set New Password</h3>
+                        <p class="auth-pane-desc" id="resetPaneDesc">Enter and confirm a strong new password for your account.</p>
+                    </div>
+
+                    <form id="resetPasswordForm" novalidate>
+                        <input type="hidden" id="resetTokenInput">
+
+                        <div class="form-group">
+                            <label for="resetNewPassword" class="required">New Password</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="lock" class="input-icon"></i>
+                                <input type="password" id="resetNewPassword" name="newPassword" class="form-input" placeholder="Min. 8 characters" required autocomplete="new-password">
+                                <button type="button" class="password-toggle-btn" id="toggleResetNewPasswordBtn" aria-label="Show or hide password">
+                                    <i data-lucide="eye" id="resetNewEyeIcon"></i>
+                                </button>
+                            </div>
+                            <div class="password-rules-bar" id="resetPasswordRules">
+                                <span class="rule-chip" id="ruleLength"><i data-lucide="check"></i> 8+ chars</span>
+                                <span class="rule-chip" id="ruleUpper"><i data-lucide="check"></i> Uppercase</span>
+                                <span class="rule-chip" id="ruleLower"><i data-lucide="check"></i> Lowercase</span>
+                                <span class="rule-chip" id="ruleNumber"><i data-lucide="check"></i> Number</span>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="resetConfirmPassword" class="required">Confirm New Password</label>
+                            <div class="input-with-icon">
+                                <i data-lucide="shield-check" class="input-icon"></i>
+                                <input type="password" id="resetConfirmPassword" name="confirmPassword" class="form-input" placeholder="Re-enter new password" required autocomplete="new-password">
+                                <button type="button" class="password-toggle-btn" id="toggleResetConfirmPasswordBtn" aria-label="Show or hide password">
+                                    <i data-lucide="eye" id="resetConfirmEyeIcon"></i>
+                                </button>
+                            </div>
+                            <span class="error-msg" id="resetPasswordError"></span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-full btn-lg auth-submit-btn" id="resetSubmitBtn">
+                            <i data-lucide="check-circle-2"></i>
+                            <span>Save New Password & Sign In</span>
+                        </button>
+                    </form>
+
+                    <div class="auth-footer-note">
+                        <span>Never mind?</span>
+                        <a href="#" id="linkResetBackToLogin">Back to Sign In</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MAIN APPLICATION SHELL (AUTHENTICATED) -->
+    <!-- Displayed when librarian is authenticated -->
+    <!-- ================================================================= -->
+    <div class="app-layout" id="appLayout" style="display: none;">
+        
+        <!-- Mobile Overlay -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- A. LEFT SIDEBAR -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="brand">
+                    <div class="brand-icon">
+                        <i data-lucide="book-marked"></i>
+                    </div>
+                    <div class="brand-text">
+                        <span class="brand-name" id="sidebarBrandName">HS Library</span>
+                        <span class="brand-badge" id="sidebarLibraryBadge">Central Library</span>
+                    </div>
+                </div>
+                <button class="icon-btn sidebar-close-btn" id="sidebarCloseBtn" aria-label="Close sidebar">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+
+            <!-- Navigation Links -->
+            <nav class="sidebar-nav" aria-label="Main Navigation">
+                <div class="nav-group-title">MAIN CIRCULATION</div>
+                <button class="nav-item active" data-tab="dashboard">
+                    <i data-lucide="layout-dashboard"></i>
+                    <span>Dashboard</span>
+                </button>
+                <button class="nav-item" data-tab="books">
+                    <i data-lucide="book-copy"></i>
+                    <span>Books Catalog</span>
+                    <span class="nav-counter" id="navBooksCount">0</span>
+                </button>
+                <button class="nav-item" data-tab="students">
+                    <i data-lucide="graduation-cap"></i>
+                    <span>Students Directory</span>
+                    <span class="nav-counter" id="navStudentsCount">0</span>
+                </button>
+                <button class="nav-item" data-tab="circulation">
+                    <i data-lucide="arrow-left-right"></i>
+                    <span>Issue & Return</span>
+                </button>
+                <button class="nav-item" data-tab="history">
+                    <i data-lucide="history"></i>
+                    <span>Transaction History</span>
+                </button>
+
+                <div class="nav-group-title">AUDIT & SYSTEM</div>
+                <button class="nav-item" data-tab="reports">
+                    <i data-lucide="bar-chart-3"></i>
+                    <span>Reports & Analytics</span>
+                </button>
+                <button class="nav-item" data-tab="about">
+                    <i data-lucide="info"></i>
+                    <span>About HS Library</span>
+                </button>
+                <button class="nav-item" data-tab="settings">
+                    <i data-lucide="settings"></i>
+                    <span>System Settings</span>
+                </button>
+            </nav>
+
+            <!-- Sidebar User Profile Footer with Sign Out -->
+            <div class="sidebar-footer">
+                <div class="user-profile">
+                    <div class="user-avatar" id="sidebarUserAvatar">
+                        <span id="userAvatarText">HL</span>
+                        <span class="status-indicator online" title="Active Session"></span>
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name" id="sidebarUserName">Head Librarian</span>
+                        <span class="user-role" id="sidebarUserRole">Administrator</span>
+                    </div>
+                    <button class="icon-btn logout-mini-btn" id="sidebarLogoutBtn" title="Sign Out of Library">
+                        <i data-lucide="log-out"></i>
+                    </button>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAIN WRAPPER -->
+        <div class="main-wrapper">
+            
+            <!-- B. TOP HEADER -->
+            <header class="top-header">
+                <div class="header-left">
+                    <button class="icon-btn mobile-toggle" id="mobileMenuToggle" aria-label="Open navigation menu">
+                        <i data-lucide="menu"></i>
+                    </button>
+                    <div class="header-breadcrumb">
+                        <span class="breadcrumb-root" id="headerLibraryName">HS Central Library</span>
+                        <i data-lucide="chevron-right" class="breadcrumb-separator"></i>
+                        <span class="breadcrumb-current" id="currentBreadcrumb">Dashboard</span>
+                    </div>
+                </div>
+
+                <div class="header-right">
+                    <!-- Global Search Trigger -->
+                    <button class="search-trigger-btn" id="globalSearchTrigger" title="Quick Search (Ctrl+K)">
+                        <i data-lucide="search"></i>
+                        <span class="search-text">Search catalog or students...</span>
+                        <kbd class="search-kbd">Ctrl K</kbd>
+                    </button>
+
+                    <!-- DB Status Pill -->
+                    <div class="db-status-pill" id="dbStatusPill" title="Database Connection Status">
+                        <span class="db-pulse-dot"></span>
+                        <span class="db-status-text" id="dbStatusText">Checking DB...</span>
+                    </div>
+
+                    <!-- Current Date Badge -->
+                    <div class="date-badge" id="headerDateDisplay">
+                        <i data-lucide="calendar"></i>
+                        <span id="dateText">Today</span>
+                    </div>
+
+                    <!-- Theme Toggle -->
+                    <button class="icon-btn theme-toggle" id="themeToggleBtn" aria-label="Toggle light and dark mode" title="Toggle Theme">
+                        <i data-lucide="moon" id="themeIcon"></i>
+                    </button>
+
+                    <!-- Primary Action Shortcut -->
+                    <button class="btn btn-primary btn-sm header-action-btn" id="headerQuickIssueBtn">
+                        <i data-lucide="arrow-right-left"></i>
+                        <span>Quick Issue</span>
+                    </button>
+
+                    <!-- Top Bar Logout -->
+                    <button class="btn btn-outline btn-sm logout-btn" id="headerLogoutBtn" title="Sign Out">
+                        <i data-lucide="log-out"></i>
+                        <span>Sign Out</span>
+                    </button>
+                </div>
+            </header>
+
+            <!-- C. MAIN CONTENT AREA -->
+            <main class="content-container">
+
+                <!-- TAB 1: DASHBOARD -->
+                <section class="tab-pane active" id="pane-dashboard">
+                    <!-- Welcome Banner -->
+                    <div class="welcome-banner">
+                        <div class="welcome-content">
+                            <div class="welcome-tag" id="welcomeLibraryTag">Campus Library Portal</div>
+                            <h1 class="welcome-title" id="welcomeTitle">Welcome to HS Library Management System</h1>
+                            <p class="welcome-desc" id="welcomeDesc">
+                                Secure multi-library circulation, real-time inventory management, student records, and compliance analytics.
+                            </p>
+                            <div class="welcome-actions">
+                                <button class="btn btn-white" id="dashAddBookBtn">
+                                    <i data-lucide="plus-circle"></i>
+                                    <span>Add Book</span>
+                                </button>
+                                <button class="btn btn-ghost-white" id="dashIssueBtn">
+                                    <i data-lucide="arrow-right-left"></i>
+                                    <span>Issue Book</span>
+                                </button>
+                                <button class="btn btn-ghost-white" id="dashViewOverdueBtn">
+                                    <i data-lucide="alert-triangle"></i>
+                                    <span>View Overdue</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="welcome-illustration">
+                            <i data-lucide="library" class="bg-icon"></i>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap primary">
+                                <i data-lucide="book"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Total Books</span>
+                                <h3 class="stat-value" id="statTotalBooks">—</h3>
+                                <p class="stat-sub" id="statCategoriesSub">Across categories</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap success">
+                                <i data-lucide="check-circle-2"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Available on Shelf</span>
+                                <h3 class="stat-value" id="statAvailableBooks">—</h3>
+                                <p class="stat-sub" id="statAvailableSub">Ready for checkout</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap warning">
+                                <i data-lucide="bookmark-check"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Currently Issued</span>
+                                <h3 class="stat-value" id="statIssuedBooks">—</h3>
+                                <p class="stat-sub" id="statIssuedSub">Active loans</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap info">
+                                <i data-lucide="users"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Registered Students</span>
+                                <h3 class="stat-value" id="statTotalStudents">—</h3>
+                                <p class="stat-sub" id="statStudentsSub">Enrolled patrons</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card overdue-card" id="overdueStatCard">
+                            <div class="stat-icon-wrap danger">
+                                <i data-lucide="alert-circle"></i>
+                            </div>
+                            <div class="stat-info">
+                                <span class="stat-label">Overdue Books</span>
+                                <h3 class="stat-value text-danger" id="statOverdueBooks">—</h3>
+                                <p class="stat-sub text-danger" id="statOverdueSub">Requires immediate return</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Middle Row: Category Breakdown & Circulation Gauge -->
+                    <div class="dashboard-row">
+                        <!-- Category Distribution -->
+                        <div class="card col-span-7">
+                            <div class="card-header">
+                                <div>
+                                    <h3 class="card-title">Catalog by Category</h3>
+                                    <p class="card-subtitle">Real-time inventory distribution for your library</p>
+                                </div>
+                                <button class="btn btn-outline btn-xs" id="refreshStatsBtn">
+                                    <i data-lucide="refresh-cw"></i>
+                                    <span>Sync</span>
+                                </button>
+                            </div>
+                            <div class="card-body">
+                                <div class="category-bars-container" id="categoryBarsContainer">
+                                    <div class="skeleton-bar"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Circulation Meter -->
+                        <div class="card col-span-5">
+                            <div class="card-header">
+                                <div>
+                                    <h3 class="card-title">Collection Utilization</h3>
+                                    <p class="card-subtitle">Available shelf inventory vs active borrowings</p>
+                                </div>
+                            </div>
+                            <div class="card-body flex-center-col">
+                                <div class="utilization-meter-wrap">
+                                    <div class="meter-circle" id="meterCircle">
+                                        <div class="meter-inner">
+                                            <span class="meter-percent" id="meterPercent">0%</span>
+                                            <span class="meter-label">Circulating</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="utilization-legend">
+                                    <div class="legend-item">
+                                        <span class="legend-dot available"></span>
+                                        <span class="legend-name">Available Shelf:</span>
+                                        <strong class="legend-val" id="legendAvailable">0</strong>
+                                    </div>
+                                    <div class="legend-item">
+                                        <span class="legend-dot issued"></span>
+                                        <span class="legend-name">Active Loans:</span>
+                                        <strong class="legend-val" id="legendIssued">0</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Bottom Row: Recent Circulation Feed -->
+                    <div class="card mt-6">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Recent Circulation Activity</h3>
+                                <p class="card-subtitle">Latest book checkouts, renewals, and returned inventory</p>
+                            </div>
+                            <button class="btn btn-outline btn-xs" id="viewAllActivityBtn">
+                                <span>View Full History</span>
+                                <i data-lucide="arrow-right"></i>
+                            </button>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="data-table" id="recentActivityTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Transaction</th>
+                                            <th>Book Title</th>
+                                            <th>Student</th>
+                                            <th>Issue Date</th>
+                                            <th>Due Date</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="recentActivityTbody">
+                                        <!-- Dynamic activity rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 2: BOOKS CATALOG & GALLERY -->
+                <section class="tab-pane" id="pane-books">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Books Catalog & Discovery</h2>
+                            <p class="section-desc">Explore novels, storybooks, children's literature, academic volumes, and multi-lingual collections</p>
+                        </div>
+                        <div class="section-actions">
+                            <!-- Display Mode Switcher (Gallery vs Table) -->
+                            <div class="view-mode-toggle" role="group" aria-label="Catalog Display Mode">
+                                <button type="button" class="view-toggle-btn active" id="viewModeGalleryBtn" data-view="gallery" title="Gallery View (Book Covers)">
+                                    <i data-lucide="layout-grid"></i>
+                                    <span>Gallery</span>
+                                </button>
+                                <button type="button" class="view-toggle-btn" id="viewModeTableBtn" data-view="table" title="Table View (Data Grid)">
+                                    <i data-lucide="table"></i>
+                                    <span>Table</span>
+                                </button>
+                            </div>
+
+                            <button class="btn btn-outline" id="refreshBooksBtn">
+                                <i data-lucide="refresh-cw"></i>
+                                <span>Refresh</span>
+                            </button>
+                            <button class="btn btn-primary" id="openAddBookModalBtn">
+                                <i data-lucide="plus"></i>
+                                <span>Add New Book</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Books Filter Toolbar -->
+                    <div class="filter-toolbar">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="booksSearchInput" placeholder="Search by title, author, category, or ISBN..." autocomplete="off">
+                            <button class="clear-search-btn" id="clearBooksSearch" aria-label="Clear search">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+
+                        <div class="filter-selects">
+                            <!-- Language Filter -->
+                            <div class="select-wrap">
+                                <label for="booksLanguageFilter">Language:</label>
+                                <select id="booksLanguageFilter">
+                                    <option value="All">All Languages</option>
+                                    <option value="English">English</option>
+                                    <option value="Hindi">Hindi (हिंदी)</option>
+                                </select>
+                            </div>
+
+                            <!-- Category Filter -->
+                            <div class="select-wrap">
+                                <label for="booksCategoryFilter">Category:</label>
+                                <select id="booksCategoryFilter">
+                                    <option value="All">All Categories</option>
+                                    <option value="English Novels">English Novels</option>
+                                    <option value="Hindi Novels">Hindi Novels</option>
+                                    <option value="English Storybooks">English Storybooks</option>
+                                    <option value="Hindi Storybooks">Hindi Storybooks</option>
+                                    <option value="Children's Stories">Children's Stories</option>
+                                    <option value="Moral Stories">Moral Stories</option>
+                                    <option value="Fantasy & Adventure">Fantasy & Adventure</option>
+                                    <option value="Mystery & Thriller">Mystery & Thriller</option>
+                                    <option value="Romance">Romance</option>
+                                    <option value="Classic Literature">Classic Literature</option>
+                                </select>
+                            </div>
+
+                            <!-- Availability Filter -->
+                            <div class="select-wrap">
+                                <label for="booksStatusFilter">Status:</label>
+                                <select id="booksStatusFilter">
+                                    <option value="All">All Statuses</option>
+                                    <option value="available">Available Only</option>
+                                    <option value="issued">Issued Only</option>
+                                </select>
+                            </div>
+
+                            <!-- Sort -->
+                            <div class="select-wrap">
+                                <label for="booksSortFilter">Sort:</label>
+                                <select id="booksSortFilter">
+                                    <option value="newest">Newest Added</option>
+                                    <option value="oldest">Oldest Added</option>
+                                    <option value="title_asc">Title (A to Z)</option>
+                                    <option value="author_asc">Author (A to Z)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Books Results Counter & Active Filter Pills -->
+                    <div class="results-meta-bar">
+                        <span id="booksCountPill" class="badge badge-neutral">Showing 0 books</span>
+                        <div class="active-filters-chips" id="activeFilterChips"></div>
+                    </div>
+
+                    <!-- 1. GALLERY VIEW (Grid with Book Covers) -->
+                    <div id="booksGalleryView" class="books-gallery-view">
+                        <div class="books-grid" id="booksGrid">
+                            <!-- Dynamic Book Cards with Covers -->
+                        </div>
+                    </div>
+
+                    <!-- 2. TABLE VIEW (Standard Data Grid) -->
+                    <div id="booksTableView" class="books-table-view hidden">
+                        <div class="card p-0">
+                            <div class="table-responsive">
+                                <table class="data-table" id="booksTable">
+                                    <thead>
+                                        <tr>
+                                            <th style="width: 50px;">Cover</th>
+                                            <th>Book ID</th>
+                                            <th>Title & ISBN</th>
+                                            <th>Author</th>
+                                            <th>Language</th>
+                                            <th>Category</th>
+                                            <th>Shelf Location</th>
+                                            <th>Year</th>
+                                            <th>Availability</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="booksTbody">
+                                        <!-- Dynamic Rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Common Empty State -->
+                    <div class="empty-state hidden" id="booksEmptyState">
+                        <div class="empty-icon"><i data-lucide="book-x"></i></div>
+                        <h3>No Books Found</h3>
+                        <p>No catalog records match your query. Try resetting your search filters or add a new volume.</p>
+                        <button class="btn btn-primary btn-sm mt-3" id="emptyAddBookBtn">Add New Book</button>
+                    </div>
+                </section>
+
+                <!-- TAB 3: STUDENTS DIRECTORY -->
+                <section class="tab-pane" id="pane-students">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Students Registry</h2>
+                            <p class="section-desc">Manage enrolled student accounts, borrowing quotas, and loan histories</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-outline" id="refreshStudentsBtn">
+                                <i data-lucide="refresh-cw"></i>
+                                <span>Refresh</span>
+                            </button>
+                            <button class="btn btn-primary" id="openAddStudentModalBtn">
+                                <i data-lucide="user-plus"></i>
+                                <span>Register Student</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Students Filter Toolbar -->
+                    <div class="filter-toolbar">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="studentsSearchInput" placeholder="Search by student name, ID number, department, or email..." autocomplete="off">
+                            <button class="clear-search-btn" id="clearStudentsSearch" aria-label="Clear search">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+
+                        <div class="filter-selects">
+                            <div class="select-wrap">
+                                <label for="studentsSortFilter">Sort:</label>
+                                <select id="studentsSortFilter">
+                                    <option value="name_asc">Name (A to Z)</option>
+                                    <option value="name_desc">Name (Z to A)</option>
+                                    <option value="id_desc">Student ID</option>
+                                    <option value="most_active">Most Active Borrowers</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Count -->
+                    <div class="results-meta">
+                        <span id="studentsCountPill" class="badge badge-neutral">Showing 0 students</span>
+                    </div>
+
+                    <!-- Students Table Container -->
+                    <div class="card p-0">
+                        <div class="table-responsive">
+                            <table class="data-table" id="studentsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Student ID</th>
+                                        <th>Student Name</th>
+                                        <th>Department</th>
+                                        <th>Email Address</th>
+                                        <th>Contact</th>
+                                        <th>Current Loans</th>
+                                        <th>Lifetime Borrows</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="studentsTbody">
+                                    <!-- Dynamic rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="empty-state hidden" id="studentsEmptyState">
+                            <div class="empty-icon"><i data-lucide="user-x"></i></div>
+                            <h3>No Students Registered</h3>
+                            <p>No student records match your query. Register a student to allow book checkouts.</p>
+                            <button class="btn btn-primary btn-sm mt-3" id="emptyAddStudentBtn">Register Student</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 4: ISSUE & RETURN DESK -->
+                <section class="tab-pane" id="pane-circulation">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Issue & Return Desk</h2>
+                            <p class="section-desc">Atomic book checkouts, automated loan due dates, and quick check-in terminal</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-outline" id="refreshCirculationBtn">
+                                <i data-lucide="refresh-cw"></i>
+                                <span>Sync Registry</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="circulation-grid">
+                        <!-- Left Column: Issue Book Terminal -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="flex-align-gap">
+                                    <div class="stat-icon-wrap primary sm"><i data-lucide="arrow-right"></i></div>
+                                    <div>
+                                        <h3 class="card-title">Issue a Book</h3>
+                                        <p class="card-subtitle">Authorize checkout to a registered campus borrower</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <form id="issueBookForm" novalidate>
+                                    <div class="form-group">
+                                        <label for="issueStudentSelect" class="required">Select Registered Student</label>
+                                        <select id="issueStudentSelect" class="form-input" required>
+                                            <option value="">-- Choose Borrower --</option>
+                                        </select>
+                                        <span class="field-hint">Only students in active standing may borrow.</span>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="issueBookSelect" class="required">Select Available Book</label>
+                                        <select id="issueBookSelect" class="form-input" required>
+                                            <option value="">-- Choose Volume from Shelf --</option>
+                                        </select>
+                                        <span class="field-hint">Only unissued physical volumes from your library are listed.</span>
+                                    </div>
+
+                                    <div class="form-row-2">
+                                        <div class="form-group">
+                                            <label for="issueDateInput" class="required">Issue Date</label>
+                                            <input type="date" id="issueDateInput" class="form-input" required>
+                                        </div>
+
+                                        <div class="form-group">
+                                            <label for="issueDueDateInput" class="required">Due Date</label>
+                                            <input type="date" id="issueDueDateInput" class="form-input" required>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="issueRemarksInput">Notes / Condition Remarks (Optional)</label>
+                                        <input type="text" id="issueRemarksInput" class="form-input" placeholder="e.g. Standard 14-day checkout, coursework copy">
+                                    </div>
+
+                                    <div class="form-actions mt-4">
+                                        <button type="submit" class="btn btn-primary w-full" id="submitIssueBtn">
+                                            <i data-lucide="check"></i>
+                                            <span>Authorize & Issue Book</span>
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+
+                        <!-- Right Column: Quick Return & Active Loans -->
+                        <div class="card">
+                            <div class="card-header">
+                                <div class="flex-align-gap">
+                                    <div class="stat-icon-wrap success sm"><i data-lucide="arrow-left"></i></div>
+                                    <div>
+                                        <h3 class="card-title">Active Loans Desk</h3>
+                                        <p class="card-subtitle">Fast book check-in and return verification</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="p-4 border-b">
+                                    <div class="search-box">
+                                        <i data-lucide="search"></i>
+                                        <input type="text" id="activeLoansSearch" placeholder="Filter active loans by student or book title..." autocomplete="off">
+                                    </div>
+                                </div>
+                                <div class="table-responsive active-loans-scroll">
+                                    <table class="data-table" id="activeLoansTable">
+                                        <thead>
+                                            <tr>
+                                                <th>Tx #</th>
+                                                <th>Book</th>
+                                                <th>Student</th>
+                                                <th>Due Date</th>
+                                                <th>Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="activeLoansTbody">
+                                            <!-- Dynamic rows -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="empty-state hidden p-6" id="activeLoansEmptyState">
+                                    <div class="empty-icon"><i data-lucide="check-check"></i></div>
+                                    <h4>No Active Loans</h4>
+                                    <p>All catalog volumes are currently restocked on the shelves.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 5: TRANSACTION HISTORY & AUDIT -->
+                <section class="tab-pane" id="pane-history">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Transaction History & Audit Log</h2>
+                            <p class="section-desc">Complete immutable ledger of all book issues, due dates, returns, and overdue calculations</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-outline" id="exportHistoryCsvBtn">
+                                <i data-lucide="download"></i>
+                                <span>Export to CSV</span>
+                            </button>
+                            <button class="btn btn-outline" id="refreshHistoryBtn">
+                                <i data-lucide="refresh-cw"></i>
+                                <span>Refresh</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- History Toolbar -->
+                    <div class="filter-toolbar">
+                        <div class="search-box">
+                            <i data-lucide="search"></i>
+                            <input type="text" id="historySearchInput" placeholder="Search by transaction ID, book title, student name, or ID..." autocomplete="off">
+                            <button class="clear-search-btn" id="clearHistorySearch" aria-label="Clear search">
+                                <i data-lucide="x"></i>
+                            </button>
+                        </div>
+
+                        <div class="filter-selects">
+                            <div class="select-wrap">
+                                <label for="historyStatusFilter">Status:</label>
+                                <select id="historyStatusFilter">
+                                    <option value="all">All Transactions</option>
+                                    <option value="issued">Active Loans</option>
+                                    <option value="returned">Returned Books</option>
+                                    <option value="overdue">Overdue Only</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Summary Stats Pill -->
+                    <div class="history-metrics-bar">
+                        <div class="metric-pill">
+                            <span>Total Historical Issues:</span>
+                            <strong id="histTotalCount">0</strong>
+                        </div>
+                        <div class="metric-pill">
+                            <span>Active Loans:</span>
+                            <strong id="histActiveCount">0</strong>
+                        </div>
+                        <div class="metric-pill">
+                            <span>Completed Returns:</span>
+                            <strong id="histReturnedCount">0</strong>
+                        </div>
+                        <div class="metric-pill danger-pill">
+                            <span>Overdue:</span>
+                            <strong id="histOverdueCount">0</strong>
+                        </div>
+                    </div>
+
+                    <!-- History Table -->
+                    <div class="card p-0">
+                        <div class="table-responsive">
+                            <table class="data-table" id="historyTable">
+                                <thead>
+                                    <tr>
+                                        <th>Tx ID</th>
+                                        <th>Book Volume</th>
+                                        <th>Borrower</th>
+                                        <th>Issue Date</th>
+                                        <th>Due Date</th>
+                                        <th>Return Date</th>
+                                        <th>Status</th>
+                                        <th>Remarks</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTbody">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="empty-state hidden" id="historyEmptyState">
+                            <div class="empty-icon"><i data-lucide="file-question"></i></div>
+                            <h3>No Transaction Records Found</h3>
+                            <p>No historical borrowing records match your current filter parameters.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 6: REPORTS & ANALYTICS -->
+                <section class="tab-pane" id="pane-reports">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">Reports & Analytics</h2>
+                            <p class="section-desc">Audited metrics, loan frequencies, borrower leaderboards, and category statistics</p>
+                        </div>
+                        <div class="section-actions">
+                            <button class="btn btn-outline" id="exportReportsCsvBtn">
+                                <i data-lucide="file-spreadsheet"></i>
+                                <span>Export Executive Report</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Key Executive KPI Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap primary sm"><i data-lucide="trending-up"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Turnover Velocity</span>
+                                <h3 class="stat-value" id="kpiTurnover">—</h3>
+                                <p class="stat-sub">Issues per physical volume</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap success sm"><i data-lucide="shield-check"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">On-Time Return Rate</span>
+                                <h3 class="stat-value" id="kpiCompliance">—</h3>
+                                <p class="stat-sub">Borrowers complying with due dates</p>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon-wrap info sm"><i data-lucide="user-check"></i></div>
+                            <div class="stat-info">
+                                <span class="stat-label">Borrower Participation</span>
+                                <h3 class="stat-value" id="kpiBorrowerRatio">—</h3>
+                                <p class="stat-sub">Enrolled students with active loans</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Leaderboard Row -->
+                    <div class="dashboard-row mt-6">
+                        <!-- Top 5 Most Borrowed Books -->
+                        <div class="card col-span-6">
+                            <div class="card-header">
+                                <div>
+                                    <h3 class="card-title">Most Borrowed Volumes</h3>
+                                    <p class="card-subtitle">Highest circulation demand in your catalog</p>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="data-table" id="topBooksTable">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Book Title</th>
+                                                <th>Category</th>
+                                                <th>Total Checkouts</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="topBooksTbody">
+                                            <!-- Dynamic leaderboard -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Top 5 Most Active Students -->
+                        <div class="card col-span-6">
+                            <div class="card-header">
+                                <div>
+                                    <h3 class="card-title">Top Student Borrowers</h3>
+                                    <p class="card-subtitle">Most active library patron accounts</p>
+                                </div>
+                            </div>
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="data-table" id="topStudentsTable">
+                                        <thead>
+                                            <tr>
+                                                <th>#</th>
+                                                <th>Student Name</th>
+                                                <th>ID</th>
+                                                <th>Department</th>
+                                                <th>Borrows</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="topStudentsTbody">
+                                            <!-- Dynamic leaderboard -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Category Breakdown Table -->
+                    <div class="card mt-6">
+                        <div class="card-header">
+                            <div>
+                                <h3 class="card-title">Category Inventory Breakdown</h3>
+                                <p class="card-subtitle">Classification metrics calculated directly from your library database</p>
+                            </div>
+                        </div>
+                        <div class="card-body p-0">
+                            <div class="table-responsive">
+                                <table class="data-table" id="categoryBreakdownTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Category / Department</th>
+                                            <th>Total Titles</th>
+                                            <th>Proportion of Library</th>
+                                            <th>Inventory Share Bar</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="categoryBreakdownTbody">
+                                        <!-- Dynamic rows -->
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 7: ABOUT HS LIBRARY -->
+                <section class="tab-pane" id="pane-about">
+                    <div class="editorial-about-container">
+                        <div class="about-hero">
+                            <div class="about-hero-badge">Multi-Library Enterprise Edition</div>
+                            <h1 class="about-hero-title">HS Library — Enterprise Multi-Tenant Platform</h1>
+                            <p class="about-hero-lead">
+                                Designed as a commercial-grade, multi-tenant SaaS application for academic institutions,
+                                providing complete cryptographic isolation, ACID transaction guarantees, and editorial UX.
+                            </p>
+                        </div>
+
+                        <div class="about-features-grid">
+                            <div class="about-feature-card">
+                                <div class="about-icon-box"><i data-lucide="shield-check"></i></div>
+                                <h3>Strict Data Isolation</h3>
+                                <p>Every database query is strictly scoped to the authenticated librarian's <code>library_id</code>. Cross-tenant tampering is cryptographically blocked at the API layer.</p>
+                            </div>
+
+                            <div class="about-feature-card">
+                                <div class="about-icon-box"><i data-lucide="key-round"></i></div>
+                                <h3>Bcrypt Authentication</h3>
+                                <p>Passwords salted and hashed using bcrypt. Access tokens signed via HMAC-SHA256 JWT, with session expiry and rate-limiting protections.</p>
+                            </div>
+
+                            <div class="about-feature-card">
+                                <div class="about-icon-box"><i data-lucide="layers"></i></div>
+                                <h3>Multi-Tenant Architecture</h3>
+                                <p>Support for unlimited independent campus libraries, each with their own books, students, circulation desks, and audit ledgers.</p>
+                            </div>
+
+                            <div class="about-feature-card">
+                                <div class="about-icon-box"><i data-lucide="database"></i></div>
+                                <h3>Dual-Engine Reliability</h3>
+                                <p>Compatible with MySQL 8+ on Workbench and auto-failover to persistent zero-config Relational SQLite for uninterrupted portable operation.</p>
+                            </div>
+                        </div>
+
+                        <!-- System Specs Box -->
+                        <div class="card mt-6">
+                            <div class="card-header">
+                                <h3 class="card-title">Technical Specifications</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="specs-grid">
+                                    <div class="spec-item">
+                                        <span class="spec-label">Backend Engine</span>
+                                        <span class="spec-value">Node.js + Express.js REST API</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Security & Auth</span>
+                                        <span class="spec-value">Bcrypt Hashing + JWT Bearer Auth</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Data Architecture</span>
+                                        <span class="spec-value">Multi-Tenant Foreign Key Scoping</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Relational Stores</span>
+                                        <span class="spec-value">MySQL 8.0 / Persistent InnoDB</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Design System</span>
+                                        <span class="spec-value">Deep Indigo / Violet Editorial SaaS</span>
+                                    </div>
+                                    <div class="spec-item">
+                                        <span class="spec-label">Version</span>
+                                        <span class="spec-value">2.5.0-MultiLibrary Enterprise</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- TAB 8: SYSTEM SETTINGS -->
+                <section class="tab-pane" id="pane-settings">
+                    <div class="section-header">
+                        <div>
+                            <h2 class="section-title">System Settings</h2>
+                            <p class="section-desc">Manage authenticated library profile, color themes, circulation policies, and diagnostics</p>
+                        </div>
+                    </div>
+
+                    <div class="settings-grid">
+                        <!-- Authenticated Library Profile Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">Authenticated Library Profile</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="setting-item">
+                                    <div>
+                                        <h4 class="setting-name">Registered Library Name</h4>
+                                        <p class="setting-desc">Institutional identification under your administrator account.</p>
+                                    </div>
+                                    <span class="badge badge-primary" id="settingDisplayLibName">HS Central Library</span>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div>
+                                        <h4 class="setting-name">Librarian Account</h4>
+                                        <p class="setting-desc" id="settingDisplayLibrarianEmail">librarian@hslibrary.edu</p>
+                                    </div>
+                                    <span class="badge badge-neutral" id="settingDisplayLibrarianRole">Administrator</span>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div>
+                                        <h4 class="setting-name">Session Security</h4>
+                                        <p class="setting-desc">Sign out of this session on this computer.</p>
+                                    </div>
+                                    <button class="btn btn-danger btn-sm" id="settingLogoutBtn">Sign Out</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- UI Preferences Card -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3 class="card-title">User Interface Preferences</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="setting-item">
+                                    <div>
+                                        <h4 class="setting-name">Color Theme</h4>
+                                        <p class="setting-desc">Select your preferred color mode. Automatically persisted.</p>
+                                    </div>
+                                    <div class="theme-radios">
+                                        <label class="radio-label">
+                                            <input type="radio" name="themeSetting" value="light" id="themeRadioLight">
+                                            <span>Light</span>
+                                        </label>
+                                        <label class="radio-label">
+                                            <input type="radio" name="themeSetting" value="dark" id="themeRadioDark">
+                                            <span>Dark</span>
+                                        </label>
+                                    </div>
+                                </div>
+
+                                <div class="setting-item">
+                                    <div>
+                                        <h4 class="setting-name">Default Loan Duration</h4>
+                                        <p class="setting-desc">Checkout window before a loan is flagged overdue.</p>
+                                    </div>
+                                    <div class="setting-control">
+                                        <select id="settingLoanDays" class="form-input sm-input">
+                                            <option value="7">7 Days (1 Week)</option>
+                                            <option value="14" selected>14 Days (2 Weeks - Standard)</option>
+                                            <option value="21">21 Days (3 Weeks)</option>
+                                            <option value="30">30 Days (1 Month)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Database Diagnostics Card -->
+                        <div class="card col-span-12">
+                            <div class="card-header">
+                                <div class="flex-between w-full">
+                                    <div>
+                                        <h3 class="card-title">Database & Server Diagnostics</h3>
+                                        <p class="card-subtitle">Real-time health report from Express backend</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-xs" id="checkDbHealthBtn">
+                                        <i data-lucide="activity"></i>
+                                        <span>Run Live Diagnostic</span>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="card-body">
+                                <div class="diagnostics-panel" id="diagnosticsPanel">
+                                    <div class="diag-row">
+                                        <span class="diag-label">Engine:</span>
+                                        <span class="diag-value" id="diagEngine">—</span>
+                                    </div>
+                                    <div class="diag-row">
+                                        <span class="diag-label">Host:</span>
+                                        <span class="diag-value" id="diagHost">—</span>
+                                    </div>
+                                    <div class="diag-row">
+                                        <span class="diag-label">Database Name:</span>
+                                        <span class="diag-value" id="diagDbName">—</span>
+                                    </div>
+                                    <div class="diag-row">
+                                        <span class="diag-label">Connection Status:</span>
+                                        <span class="diag-value badge badge-success" id="diagStatus">—</span>
+                                    </div>
+                                    <div class="diag-row">
+                                        <span class="diag-label">System Uptime:</span>
+                                        <span class="diag-value" id="diagUptime">—</span>
+                                    </div>
+                                    <div class="diag-row">
+                                        <span class="diag-label">Details:</span>
+                                        <span class="diag-value text-secondary" id="diagMessage">—</span>
+                                    </div>
+                                </div>
+
+                                <div class="mt-4 flex-align-gap">
+                                    <button class="btn btn-outline btn-sm" id="downloadSchemaBtn">
+                                        <i data-lucide="file-code"></i>
+                                        <span>Download MySQL Workbench schema.sql</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODALS -->
+    <!-- ================================================================= -->
+
+    <!-- 1. Add Book Modal -->
+    <div class="modal-backdrop" id="addBookModal" role="dialog" aria-modal="true" aria-labelledby="addBookModalTitle">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon primary"><i data-lucide="book-plus"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="addBookModalTitle">Add New Book to Catalog</h3>
+                        <p class="modal-subtitle">Register a physical volume into your library repository</p>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="addBookModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="addBookForm" novalidate>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="bookTitleInput" class="required">Book Title</label>
+                        <input type="text" id="bookTitleInput" class="form-input" placeholder="e.g. Godaan or Harry Potter" required>
+                        <span class="error-msg" id="bookTitleError"></span>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bookAuthorInput" class="required">Author(s)</label>
+                        <input type="text" id="bookAuthorInput" class="form-input" placeholder="e.g. Munshi Premchand or J.K. Rowling" required>
+                        <span class="error-msg" id="bookAuthorError"></span>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="bookCategoryInput" class="required">Category</label>
+                            <input type="text" id="bookCategoryInput" list="categorySuggestions" class="form-input" placeholder="Select or type category..." required>
+                            <datalist id="categorySuggestions">
+                                <option value="English Novels">
+                                <option value="Hindi Novels">
+                                <option value="English Storybooks">
+                                <option value="Hindi Storybooks">
+                                <option value="Children's Stories">
+                                <option value="Moral Stories">
+                                <option value="Fantasy & Adventure">
+                                <option value="Mystery & Thriller">
+                                <option value="Romance">
+                                <option value="Classic Literature">
+                                <option value="Computer Science">
+                                <option value="Algorithms">
+                                <option value="Software Engineering">
+                                <option value="Artificial Intelligence">
+                                <option value="Databases">
+                                <option value="Distributed Systems">
+                                <option value="Networking">
+                                <option value="Cybersecurity">
+                                <option value="Data Science">
+                            </datalist>
+                            <span class="error-msg" id="bookCategoryError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bookLanguageInput" class="required">Language</label>
+                            <select id="bookLanguageInput" class="form-input" required>
+                                <option value="English">English</option>
+                                <option value="Hindi">Hindi (हिंदी)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cover Upload Widget -->
+                    <div class="form-group">
+                        <label class="form-label-bold">Book Cover Image</label>
+                        <div class="cover-upload-widget" id="addBookCoverWidget">
+                            <input type="file" id="bookCoverFileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display: none;">
+                            
+                            <!-- Dropzone (idle state) -->
+                            <div class="cover-dropzone" id="bookCoverDropzone" tabindex="0" role="button" aria-label="Upload book cover image">
+                                <div class="dropzone-icon">
+                                    <i data-lucide="upload-cloud"></i>
+                                </div>
+                                <div class="dropzone-text">
+                                    <span class="dropzone-main">Choose an image or drag & drop here</span>
+                                    <span class="dropzone-sub">JPG, JPEG, PNG, WEBP up to 5 MB</span>
+                                </div>
+                                <button type="button" class="btn btn-outline btn-xs dropzone-btn" id="bookCoverBrowseBtn">
+                                    <i data-lucide="folder-open"></i>
+                                    <span>Browse File</span>
+                                </button>
+                            </div>
+
+                            <!-- Preview Card (active when file or cover chosen) -->
+                            <div class="cover-preview-card hidden" id="bookCoverPreviewCard">
+                                <div class="cover-preview-thumb">
+                                    <img id="bookCoverPreviewImg" src="" alt="Book Cover Preview">
+                                </div>
+                                <div class="cover-preview-meta">
+                                    <div class="preview-filename-row">
+                                        <i data-lucide="image" class="preview-icon"></i>
+                                        <span class="preview-filename" id="bookCoverFileName">cover.jpg</span>
+                                    </div>
+                                    <span class="preview-filesize" id="bookCoverFileSize">0 KB</span>
+                                    <button type="button" class="btn btn-outline btn-xs text-danger remove-cover-btn" id="removeBookCoverBtn">
+                                        <i data-lucide="trash-2"></i>
+                                        <span>Remove Image</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- URL Fallback Option -->
+                        <div class="cover-url-toggle-wrap">
+                            <button type="button" class="btn-text-link" id="toggleAddCoverUrlBtn">
+                                <i data-lucide="link-2"></i>
+                                <span>Or paste external image URL</span>
+                            </button>
+                            <div class="cover-url-field hidden" id="addCoverUrlField">
+                                <input type="url" id="bookCoverInput" class="form-input" placeholder="https://covers.openlibrary.org/b/isbn/...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bookIsbnInput">ISBN (Optional)</label>
+                        <input type="text" id="bookIsbnInput" class="form-input" placeholder="e.g. 978-0134494166">
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="bookShelfInput">Shelf Location</label>
+                            <input type="text" id="bookShelfInput" class="form-input" placeholder="e.g. Novels N-101" value="Main Stack A-1">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="bookYearInput">Publication Year</label>
+                            <input type="number" id="bookYearInput" class="form-input" min="1800" max="2099" value="2023">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="bookDescInput">Synopsis / Overview (Optional)</label>
+                        <textarea id="bookDescInput" class="form-input" rows="3" placeholder="Brief summary, story themes, or book overview..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="addBookModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveBookSubmitBtn">
+                        <i data-lucide="check"></i>
+                        <span>Save Book to Catalog</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 2. Edit Book Modal -->
+    <div class="modal-backdrop" id="editBookModal" role="dialog" aria-modal="true" aria-labelledby="editBookModalTitle">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon warning"><i data-lucide="edit-3"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="editBookModalTitle">Edit Book Details</h3>
+                        <p class="modal-subtitle">Update catalog classification, cover image, and metadata</p>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="editBookModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="editBookForm" novalidate>
+                <input type="hidden" id="editBookId">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editBookTitleInput" class="required">Book Title</label>
+                        <input type="text" id="editBookTitleInput" class="form-input" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editBookAuthorInput" class="required">Author</label>
+                        <input type="text" id="editBookAuthorInput" class="form-input" required>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="editBookCategoryInput" class="required">Category</label>
+                            <input type="text" id="editBookCategoryInput" list="categorySuggestions" class="form-input" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editBookLanguageInput" class="required">Language</label>
+                            <select id="editBookLanguageInput" class="form-input" required>
+                                <option value="English">English</option>
+                                <option value="Hindi">Hindi (हिंदी)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Cover Upload Widget for Edit Book -->
+                    <div class="form-group">
+                        <label class="form-label-bold">Book Cover Image</label>
+                        <div class="cover-upload-widget" id="editBookCoverWidget">
+                            <input type="file" id="editBookCoverFileInput" accept=".jpg,.jpeg,.png,.webp,image/jpeg,image/png,image/webp" style="display: none;">
+                            
+                            <!-- Dropzone (idle state) -->
+                            <div class="cover-dropzone" id="editBookCoverDropzone" tabindex="0" role="button" aria-label="Upload book cover image">
+                                <div class="dropzone-icon">
+                                    <i data-lucide="upload-cloud"></i>
+                                </div>
+                                <div class="dropzone-text">
+                                    <span class="dropzone-main">Choose an image or drag & drop here</span>
+                                    <span class="dropzone-sub">JPG, JPEG, PNG, WEBP up to 5 MB</span>
+                                </div>
+                                <button type="button" class="btn btn-outline btn-xs dropzone-btn" id="editBookCoverBrowseBtn">
+                                    <i data-lucide="folder-open"></i>
+                                    <span>Browse File</span>
+                                </button>
+                            </div>
+
+                            <!-- Preview Card (active when file or cover chosen) -->
+                            <div class="cover-preview-card hidden" id="editBookCoverPreviewCard">
+                                <div class="cover-preview-thumb">
+                                    <img id="editBookCoverPreviewImg" src="" alt="Book Cover Preview">
+                                </div>
+                                <div class="cover-preview-meta">
+                                    <div class="preview-filename-row">
+                                        <i data-lucide="image" class="preview-icon"></i>
+                                        <span class="preview-filename" id="editBookCoverFileName">Current Cover</span>
+                                    </div>
+                                    <span class="preview-filesize" id="editBookCoverFileSize">Saved in library</span>
+                                    <button type="button" class="btn btn-outline btn-xs text-danger remove-cover-btn" id="editRemoveBookCoverBtn">
+                                        <i data-lucide="trash-2"></i>
+                                        <span>Remove Image</span>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- URL Fallback Option -->
+                        <div class="cover-url-toggle-wrap">
+                            <button type="button" class="btn-text-link" id="toggleEditCoverUrlBtn">
+                                <i data-lucide="link-2"></i>
+                                <span>Or paste external image URL</span>
+                            </button>
+                            <div class="cover-url-field hidden" id="editCoverUrlField">
+                                <input type="url" id="editBookCoverInput" class="form-input" placeholder="https://...">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editBookIsbnInput">ISBN</label>
+                        <input type="text" id="editBookIsbnInput" class="form-input">
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="editBookShelfInput">Shelf Location</label>
+                            <input type="text" id="editBookShelfInput" class="form-input">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="editBookYearInput">Publication Year</label>
+                            <input type="number" id="editBookYearInput" class="form-input" min="1800" max="2099">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editBookDescInput">Synopsis / Overview</label>
+                        <textarea id="editBookDescInput" class="form-input" rows="3" placeholder="Brief summary, story themes, or book overview..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="editBookModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="updateBookSubmitBtn">
+                        <i data-lucide="save"></i>
+                        <span>Update Book</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 3. View Book Details Modal -->
+    <div class="modal-backdrop" id="bookDetailsModal" role="dialog" aria-modal="true" aria-labelledby="bookDetailsTitle">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon primary"><i data-lucide="book-open"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="bookDetailsTitle">Book Information & Discovery</h3>
+                        <p class="modal-subtitle">Complete volume metadata, cover preview, and real-time loan status</p>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="bookDetailsModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="book-details-layout">
+                    <!-- Left: Book Cover & Badges -->
+                    <div class="book-details-cover-wrap">
+                        <div class="book-details-cover" id="bookDetailsCover">
+                            <!-- Dynamic Cover Image or Fallback -->
+                        </div>
+                        <div class="book-details-badges" id="bookDetailsBadges">
+                            <!-- Language and Status badges -->
+                        </div>
+                    </div>
+
+                    <!-- Right: Metadata & Synopsis -->
+                    <div class="book-details-info">
+                        <h2 class="book-details-h2" id="detailBookTitle">—</h2>
+                        <p class="book-details-author" id="detailBookAuthor">—</p>
+                        
+                        <div class="book-details-meta-grid">
+                            <div class="meta-item">
+                                <span class="meta-label">Category</span>
+                                <span class="meta-val" id="detailBookCategory">—</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Language</span>
+                                <span class="meta-val" id="detailBookLanguage">—</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">ISBN</span>
+                                <span class="meta-val" id="detailBookIsbn">—</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Shelf Location</span>
+                                <span class="meta-val" id="detailBookShelf">—</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Publication Year</span>
+                                <span class="meta-val" id="detailBookYear">—</span>
+                            </div>
+                            <div class="meta-item">
+                                <span class="meta-label">Availability</span>
+                                <span class="meta-val" id="detailBookStatus">—</span>
+                            </div>
+                        </div>
+
+                        <div class="book-synopsis-box">
+                            <h4 class="synopsis-title"><i data-lucide="align-left"></i> <span>Synopsis & Overview</span></h4>
+                            <p class="synopsis-text" id="detailBookDescription">No synopsis provided for this volume.</p>
+                        </div>
+
+                        <div class="book-loan-card hidden" id="detailLoanInfoCard">
+                            <div class="loan-card-header">
+                                <i data-lucide="user-check"></i>
+                                <span>Current Active Loan</span>
+                            </div>
+                            <div class="loan-card-body" id="detailLoanInfoBody">
+                                <!-- Borrower details -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-close-modal="bookDetailsModal">Close</button>
+                <button type="button" class="btn btn-outline" id="detailEditBookBtn">
+                    <i data-lucide="edit-3"></i>
+                    <span>Edit Book</span>
+                </button>
+                <button type="button" class="btn btn-primary" id="detailIssueBookBtn">
+                    <i data-lucide="arrow-right-left"></i>
+                    <span>Issue Book</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. Register Student Modal -->
+    <div class="modal-backdrop" id="addStudentModal" role="dialog" aria-modal="true" aria-labelledby="addStudentModalTitle">
+        <div class="modal-dialog">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon info"><i data-lucide="user-plus"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="addStudentModalTitle">Register New Student</h3>
+                        <p class="modal-subtitle">Create an official borrower account in your library directory</p>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="addStudentModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="addStudentForm" novalidate>
+                <div class="modal-body">
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="studentIdInput" class="required">Student ID (Roll Number)</label>
+                            <input type="text" id="studentIdInput" class="form-input" placeholder="e.g. HS-2024-010" required>
+                            <span class="error-msg" id="studentIdError"></span>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="studentNameInput" class="required">Full Name</label>
+                            <input type="text" id="studentNameInput" class="form-input" placeholder="e.g. Ananya Sharma" required>
+                            <span class="error-msg" id="studentNameError"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-row-2">
+                        <div class="form-group">
+                            <label for="studentEmailInput">Campus Email</label>
+                            <input type="email" id="studentEmailInput" class="form-input" placeholder="e.g. ananya@hslibrary.edu">
+                        </div>
+
+                        <div class="form-group">
+                            <label for="studentPhoneInput">Contact Phone</label>
+                            <input type="tel" id="studentPhoneInput" class="form-input" placeholder="e.g. +91 98765 00000">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="studentDeptInput">Department / Program</label>
+                        <input type="text" id="studentDeptInput" class="form-input" placeholder="e.g. Computer Science" value="Computer Science">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="addStudentModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="saveStudentSubmitBtn">
+                        <i data-lucide="check"></i>
+                        <span>Register Student</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. Student Borrowing History Modal -->
+    <div class="modal-backdrop" id="studentHistoryModal" role="dialog" aria-modal="true" aria-labelledby="studentHistoryTitle">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon primary"><i data-lucide="history"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="studentHistoryTitle">Borrowing History</h3>
+                        <p class="modal-subtitle" id="studentHistorySubtitle">Active loans and historical checkouts</p>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="studentHistoryModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body p-0">
+                <div class="table-responsive">
+                    <table class="data-table" id="studentLoansTable">
+                        <thead>
+                            <tr>
+                                <th>Tx ID</th>
+                                <th>Book Title</th>
+                                <th>Category</th>
+                                <th>Issue Date</th>
+                                <th>Due Date</th>
+                                <th>Return Date</th>
+                                <th>Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="studentLoansTbody">
+                            <!-- Dynamic history -->
+                        </tbody>
+                    </table>
+                </div>
+                <div class="empty-state hidden p-6" id="studentLoansEmpty">
+                    <div class="empty-icon"><i data-lucide="book-open"></i></div>
+                    <h4>No Borrowing History</h4>
+                    <p>This student has not yet checked out any volumes from your library.</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-close-modal="studentHistoryModal">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. Global Search Modal (Ctrl + K) -->
+    <div class="modal-backdrop" id="globalSearchModal" role="dialog" aria-modal="true">
+        <div class="modal-dialog modal-search">
+            <div class="global-search-header">
+                <i data-lucide="search" class="search-modal-icon"></i>
+                <input type="text" id="globalSearchInput" placeholder="Search your library books, authors, or students..." autocomplete="off">
+                <kbd class="esc-kbd" data-close-modal="globalSearchModal">ESC</kbd>
+            </div>
+            <div class="global-search-body">
+                <div class="search-category-group" id="globalSearchBooksGroup">
+                    <div class="search-group-title">BOOKS CATALOG</div>
+                    <div class="search-results-list" id="searchBooksResults"></div>
+                </div>
+
+                <div class="search-category-group" id="globalSearchStudentsGroup">
+                    <div class="search-group-title">REGISTERED PATRONS</div>
+                    <div class="search-results-list" id="searchStudentsResults"></div>
+                </div>
+
+                <div class="search-empty hidden" id="globalSearchEmpty">
+                    <p>No matching books or students found in your library.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 6. Confirmation Action Dialog -->
+    <div class="modal-backdrop" id="confirmModal" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon danger" id="confirmIcon"><i data-lucide="alert-triangle"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="confirmTitle">Confirm Action</h3>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="confirmModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p id="confirmMessage" class="confirm-text">Are you sure you want to proceed with this action?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline" data-close-modal="confirmModal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Notification Container -->
+    <div class="toast-container" id="toastContainer" aria-live="polite"></div>
+
+    <!-- Application Script -->
+    <script src="script.js"></script>
+</body>
+</html>
