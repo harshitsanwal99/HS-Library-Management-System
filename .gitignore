@@ -30,3 +30,15 @@ backend_backup/
 
 # Uploaded images (keep local)
 uploads/
+# Backend database files
+backend/*.db
+backend/*.db-shm
+backend/*.db-wal
+backend/*.sqlite
+backend/*.sqlite3
+
+# Backup folders
+backend_backup/
+
+# Dependencies
+backend/node_modules/
