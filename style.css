@@ -3229,36 +3229,7 @@ body {
     line-height: 1.5;
 }
 
-.dev-reset-card {
-    margin-top: 1.25rem;
-    padding: 0.85rem 1rem;
-    border-radius: var(--radius-md);
-    background-color: var(--primary-subtle);
-    border: 1px dashed var(--primary);
-    color: var(--text-primary);
-    animation: fadeIn 0.25s ease-in-out;
-}
 
-.dev-reset-header {
-    display: flex;
-    align-items: center;
-    gap: 0.4rem;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 0.35rem;
-}
-
-.dev-reset-header svg {
-    width: 15px;
-    height: 15px;
-}
-
-.dev-reset-text {
-    font-size: 0.78rem;
-    color: var(--text-secondary);
-    line-height: 1.45;
-}
 
 .password-rules-bar {
     display: flex;

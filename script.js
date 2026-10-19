@@ -22,7 +22,9 @@ const state = {
     errorLogs: [],
     stats: null,
     reports: null,
-    dbInfo: null
+    dbInfo: null,
+    activeResetToken: null,
+    activeResetEmail: null
 };
 
 // API Base URL
@@ -157,10 +159,14 @@ function initAuthUI() {
         registerForm.addEventListener('submit', handleRegisterSubmit);
     }
 
-    // 7. Forgot Password Form Submit
+    // 7. Forgot Password Form Submit & Proceed to Reset
     const forgotForm = document.getElementById('forgotPasswordForm');
     if (forgotForm) {
         forgotForm.addEventListener('submit', handleForgotPasswordSubmit);
+    }
+    const proceedResetBtn = document.getElementById('proceedResetBtn') || document.getElementById('devOpenResetBtn');
+    if (proceedResetBtn) {
+        proceedResetBtn.addEventListener('click', handleProceedToReset);
     }
 
     // 8. Reset Password Form Submit
@@ -291,24 +297,75 @@ async function handleForgotPasswordSubmit(e) {
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Failed to process password reset request');
 
-        showToast(data.message || 'If that email is registered, recovery instructions have been prepared.', 'success', 5000);
-
-        // Safe Local Dev Workflow Card
-        const devNotice = document.getElementById('devResetNotice');
-        const devOpenBtn = document.getElementById('devOpenResetBtn');
-        if (data.devMode && data.devToken && devNotice && devOpenBtn) {
-            devNotice.classList.remove('hidden');
-            devOpenBtn.onclick = () => {
-                window.location.hash = `reset-password?token=${data.devToken}`;
-                openResetPasswordView(data.devToken);
-            };
+        const token = data.resetToken || data.devToken;
+        if (token) {
+            state.activeResetToken = token;
+            state.activeResetEmail = email;
         }
+
+        showToast(data.message || 'If that email is registered, recovery instructions have been prepared.', 'success', 5000);
     } catch (err) {
         showToast(err.message, 'danger');
     } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i data-lucide="send"></i><span>Generate Reset Link</span>';
         if (window.lucide) window.lucide.createIcons();
+    }
+}
+
+async function handleProceedToReset(e) {
+    if (e) e.preventDefault();
+
+    const emailInput = document.getElementById('forgotEmail');
+    const email = emailInput ? emailInput.value.trim() : '';
+    const emailErr = document.getElementById('forgotEmailError');
+    if (emailErr) emailErr.textContent = '';
+
+    // If an active reset token is already cached for this email in memory, proceed directly
+    if (state.activeResetToken && (!email || state.activeResetEmail === email)) {
+        await openResetPasswordView(state.activeResetToken);
+        return;
+    }
+
+    // If not cached, validate email field
+    if (!email || !email.includes('@')) {
+        if (emailErr) emailErr.textContent = 'Please enter a valid librarian email.';
+        showToast('Please enter your registered librarian email first.', 'warning');
+        if (emailInput) emailInput.focus();
+        return;
+    }
+
+    const proceedBtn = document.getElementById('proceedResetBtn') || document.getElementById('devOpenResetBtn');
+    if (proceedBtn) {
+        proceedBtn.disabled = true;
+        proceedBtn.innerHTML = '<span>Verifying reset request...</span>';
+    }
+
+    try {
+        const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to process password reset request');
+
+        const token = data.resetToken || data.devToken;
+        if (token) {
+            state.activeResetToken = token;
+            state.activeResetEmail = email;
+            await openResetPasswordView(token);
+        } else {
+            showToast(data.message || 'If that email is registered, recovery instructions have been prepared.', 'info', 5000);
+        }
+    } catch (err) {
+        showToast(err.message, 'danger');
+    } finally {
+        if (proceedBtn) {
+            proceedBtn.disabled = false;
+            proceedBtn.innerHTML = '<i data-lucide="arrow-right"></i><span>Proceed to Reset Password</span>';
+            if (window.lucide) window.lucide.createIcons();
+        }
     }
 }
 
@@ -354,6 +411,9 @@ async function handleResetPasswordSubmit(e) {
         if (!res.ok) throw new Error(data.error || 'Failed to reset password');
 
         showToast('Password reset successfully! Please sign in with your new password.', 'success', 5000);
+
+        state.activeResetToken = null;
+        state.activeResetEmail = null;
 
         // Reset form & clear route
         document.getElementById('resetPasswordForm')?.reset();
