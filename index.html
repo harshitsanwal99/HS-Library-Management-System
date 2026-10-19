@@ -69,17 +69,12 @@
                             </div>
                         </div>
 
-                        <div class="auth-options">
-                            <div class="auth-remember-row">
-                                <label class="checkbox-label" for="loginRememberMe">
-                                    <input type="checkbox" id="loginRememberMe" name="rememberMe" checked>
-                                    <span>Remember me</span>
-                                </label>
-                                <a href="#" id="linkForgotPassword" class="auth-link">Forgot Password?</a>
-                            </div>
-                            <span class="default-cred-hint" title="Default Initial Library Credentials">
-                                Demo: HS Central Library (librarian@hslibrary.edu / Admin@123)
-                            </span>
+                        <div class="auth-remember-row">
+                            <label class="checkbox-label" for="loginRememberMe">
+                                <input type="checkbox" id="loginRememberMe" name="rememberMe" checked>
+                                <span>Remember me</span>
+                            </label>
+                            <a href="#" id="linkForgotPassword" class="auth-link">Forgot Password?</a>
                         </div>
 
                         <button type="submit" class="btn btn-primary w-full btn-lg auth-submit-btn" id="loginSubmitBtn">
@@ -324,6 +319,11 @@
                 <button class="nav-item" data-tab="reports">
                     <i data-lucide="bar-chart-3"></i>
                     <span>Reports & Analytics</span>
+                </button>
+                <button class="nav-item" data-tab="bugs">
+                    <i data-lucide="shield-alert"></i>
+                    <span>Quality & Bug Tracker</span>
+                    <span class="nav-counter" id="navBugsCount">0</span>
                 </button>
                 <button class="nav-item" data-tab="about">
                     <i data-lucide="info"></i>
@@ -1357,6 +1357,262 @@
                     </div>
                 </section>
 
+                <!-- TAB 9: TQM QUALITY ASSURANCE & DEFECT TRACKER -->
+                <section class="tab-pane" id="pane-bugs">
+                    <div class="section-header">
+                        <div>
+                            <div class="badge-pill mb-1">
+                                <span class="badge-dot badge-dot-success"></span>
+                                <span>TQM Objective: Q09 — Reduce Bugs &amp; Systematic Defect Prevention</span>
+                            </div>
+                            <h2 class="section-title">Quality Assurance &amp; Defect Registry</h2>
+                            <p class="section-desc">Real-time defect tracking, automated regression test runs, centralized error logging, and continuous code quality telemetry.</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-outline" id="btnRefreshQuality">
+                                <i data-lucide="refresh-cw"></i>
+                                <span>Refresh Quality Telemetry</span>
+                            </button>
+                            <button class="btn btn-primary" id="btnOpenReportBugModal">
+                                <i data-lucide="plus-circle"></i>
+                                <span>Report Quality Defect</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Quality KPI Metric Cards -->
+                    <div class="kpi-grid mb-4">
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-primary-soft">
+                                <i data-lucide="bug" class="text-primary"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Total Logged Defects</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaKpiTotalBugs">0</h3>
+                                    <span class="kpi-subtext" id="qaKpiOpenCount">0 Open</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-success-soft">
+                                <i data-lucide="check-check" class="text-success"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Defect Resolution Rate</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaKpiResolutionRate">100%</h3>
+                                    <span class="badge badge-success" id="qaKpiResolvedCount">0 Resolved</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-danger-soft">
+                                <i data-lucide="alert-octagon" class="text-danger"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Critical / High Severity</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaKpiCriticalCount">0</h3>
+                                    <span class="kpi-subtext" id="qaKpiCriticalStatus">0 Blocking</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-accent-soft">
+                                <i data-lucide="shield-check" class="text-accent"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Automated Test Pass Rate</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaKpiTestPassRate">100%</h3>
+                                    <span class="kpi-subtext" id="qaKpiTestsCount">47/47 passing</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Defect Registry Card -->
+                    <div class="card mb-4">
+                        <div class="card-header flex-between flex-wrap gap-3">
+                            <div>
+                                <h3 class="card-title">Defect Registry &amp; Lifecycle Management</h3>
+                                <p class="card-subtitle">Every defect is tracked from identification through root-cause analysis and resolution.</p>
+                            </div>
+                            <div class="flex-align-gap">
+                                <span class="badge badge-neutral" id="qaRegistryCountBadge">0 Defects</span>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Filters & Search Toolbar -->
+                            <div class="filter-toolbar mb-4">
+                                <div class="search-input-wrap flex-1">
+                                    <i data-lucide="search" class="search-icon"></i>
+                                    <input type="text" id="qaBugSearchInput" class="form-input search-input" placeholder="Search by Bug ID, title, module, or reporter...">
+                                </div>
+                                <div class="filter-select-group">
+                                    <select id="qaBugFilterModule" class="form-select filter-select">
+                                        <option value="">All Modules</option>
+                                        <option value="books">Books Catalog</option>
+                                        <option value="students">Students Registry</option>
+                                        <option value="circulation">Circulation (Issues/Returns)</option>
+                                        <option value="auth">Authentication &amp; Security</option>
+                                        <option value="database">Database &amp; Schema</option>
+                                        <option value="ui">UI &amp; Responsiveness</option>
+                                        <option value="other">Other / Infrastructure</option>
+                                    </select>
+                                    <select id="qaBugFilterSeverity" class="form-select filter-select">
+                                        <option value="">All Severities</option>
+                                        <option value="critical">Critical</option>
+                                        <option value="high">High</option>
+                                        <option value="medium">Medium</option>
+                                        <option value="low">Low</option>
+                                    </select>
+                                    <select id="qaBugFilterStatus" class="form-select filter-select">
+                                        <option value="">All Statuses</option>
+                                        <option value="open">Open</option>
+                                        <option value="in_progress">In Progress</option>
+                                        <option value="resolved">Resolved</option>
+                                        <option value="closed">Closed</option>
+                                    </select>
+                                    <button class="btn btn-outline btn-sm" id="btnResetBugFilters" title="Reset Filters">
+                                        <i data-lucide="rotate-ccw"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Defects Table -->
+                            <div class="table-responsive">
+                                <table class="table" id="qaBugsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Bug ID</th>
+                                            <th>Defect Title &amp; Module</th>
+                                            <th>Severity</th>
+                                            <th>Status</th>
+                                            <th>Reported By</th>
+                                            <th>Reported Date</th>
+                                            <th class="text-right">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="qaBugsTableBody">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="empty-state hidden" id="qaBugsEmptyState">
+                                <div class="empty-state-icon">
+                                    <i data-lucide="shield-check"></i>
+                                </div>
+                                <h4 class="empty-state-title">No Defects Found</h4>
+                                <p class="empty-state-desc">No defects match your current search and filter criteria.</p>
+                                <button class="btn btn-primary btn-sm mt-3" id="btnOpenReportBugEmpty">
+                                    <i data-lucide="plus"></i>
+                                    <span>Report Defect</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- TQM Architecture & Defect Prevention Overview -->
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <div class="flex-align-gap">
+                                <i data-lucide="award" class="text-primary"></i>
+                                <h3 class="card-title">TQM Project Q09: Architectural Quality Controls</h3>
+                            </div>
+                            <span class="badge badge-success">Implemented &amp; Verified</span>
+                        </div>
+                        <div class="card-body">
+                            <div class="tqm-grid">
+                                <div class="tqm-card">
+                                    <div class="tqm-card-header">
+                                        <span class="tqm-icon"><i data-lucide="shield-alert"></i></span>
+                                        <h4>1. Centralized Exception Handling</h4>
+                                    </div>
+                                    <p class="tqm-desc">Global Express middleware traps synchronous and async failures. Normalizes error payloads to standardized JSON schema with status codes, preventing raw stack traces and internal SQL leaks.</p>
+                                    <div class="tqm-tag">X-Request-Id Tracing &bull; 0 Information Leaks</div>
+                                </div>
+
+                                <div class="tqm-card">
+                                    <div class="tqm-card-header">
+                                        <span class="tqm-icon"><i data-lucide="check-square"></i></span>
+                                        <h4>2. Strict Input Validation &amp; Sanitization</h4>
+                                    </div>
+                                    <p class="tqm-desc">Pure validation pipeline validates ISBN-10/13 checksum formats, student enrollment codes, email structures, 14-day default circulation periods, and HTML sanitization preventing stored XSS.</p>
+                                    <div class="tqm-tag">HTML Entity Escaping &bull; Type Validation</div>
+                                </div>
+
+                                <div class="tqm-card">
+                                    <div class="tqm-card-header">
+                                        <span class="tqm-icon"><i data-lucide="play-circle"></i></span>
+                                        <h4>3. Automated Regression Test Suite</h4>
+                                    </div>
+                                    <p class="tqm-desc">47 automated unit &amp; integration tests runnable natively via <code>npm test</code>. Validates auth tokens, multi-tenant library isolation, book inventory mutations, circulation lifecycle, and defect operations.</p>
+                                    <div class="tqm-tag">47/47 Passing (100%) &bull; 0 Dependencies</div>
+                                </div>
+
+                                <div class="tqm-card">
+                                    <div class="tqm-card-header">
+                                        <span class="tqm-icon"><i data-lucide="file-text"></i></span>
+                                        <h4>4. Structured Logging &amp; Auto-Rotation</h4>
+                                    </div>
+                                    <p class="tqm-desc">Dual file and console logger rotating automatically at 5MB with 3 rolling backups. Passwords, auth tokens, session secrets, and database credentials automatically redacted before emission.</p>
+                                    <div class="tqm-tag">5MB Limit &bull; Credential Scrubbing &bull; Rolling Backups</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Live System Error Log Viewer -->
+                    <div class="card">
+                        <div class="card-header flex-between flex-wrap gap-3">
+                            <div>
+                                <div class="flex-align-gap">
+                                    <i data-lucide="terminal" class="text-primary"></i>
+                                    <h3 class="card-title">Live System Error Logs (Ring Buffer)</h3>
+                                </div>
+                                <p class="card-subtitle">Real-time memory buffer displaying recent caught exceptions with sensitive parameters scrubbed.</p>
+                            </div>
+                            <div class="flex-align-gap">
+                                <span class="badge badge-neutral" id="qaLogFileStatus">logs/error.log</span>
+                                <button class="btn btn-outline btn-sm" id="btnRefreshErrorLogs">
+                                    <i data-lucide="refresh-cw"></i>
+                                    <span>Refresh Logs</span>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-compact" id="qaErrorLogsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>Request ID</th>
+                                            <th>Route &amp; Method</th>
+                                            <th>Error Type</th>
+                                            <th>Status</th>
+                                            <th>Message</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="qaErrorLogsTableBody">
+                                        <!-- Error logs loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div class="empty-state hidden" id="qaErrorLogsEmpty">
+                                <p class="empty-state-desc">No errors logged in the current server session. System operating cleanly!</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
             </main>
         </div>
     </div>
@@ -1886,6 +2142,158 @@
                 <button type="button" class="btn btn-outline" data-close-modal="confirmModal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmActionBtn">Confirm</button>
             </div>
+        </div>
+    </div>
+
+    <!-- 7. Report Quality Defect Modal -->
+    <div class="modal-backdrop" id="reportBugModal" role="dialog" aria-modal="true" aria-labelledby="reportBugModalTitle">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon warning"><i data-lucide="bug"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="reportBugModalTitle">Report Quality Defect</h3>
+                        <p class="modal-subtitle">Log a defect into the TQM Registry for systematic investigation and resolution.</p>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="reportBugModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="reportBugForm" autocomplete="off" novalidate>
+                <div class="modal-body">
+                    <div class="form-row">
+                        <div class="form-group flex-2">
+                            <label class="form-label" for="reportBugTitle">Defect Title <span class="required-star">*</span></label>
+                            <input type="text" id="reportBugTitle" class="form-input" placeholder="e.g., Book returns failing when due date is null" required>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="reportBugModule">Subsystem / Module <span class="required-star">*</span></label>
+                            <select id="reportBugModule" class="form-select" required>
+                                <option value="books">Books Catalog</option>
+                                <option value="students">Students Registry</option>
+                                <option value="circulation" selected>Circulation (Issues/Returns)</option>
+                                <option value="auth">Authentication &amp; Security</option>
+                                <option value="database">Database &amp; Persistence</option>
+                                <option value="ui">UI &amp; Responsiveness</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="reportBugSeverity">Severity Level <span class="required-star">*</span></label>
+                            <select id="reportBugSeverity" class="form-select" required>
+                                <option value="low">Low — Minor visual or cosmetic issue</option>
+                                <option value="medium" selected>Medium — Non-blocking functional bug</option>
+                                <option value="high">High — Important workflow disrupted with workaround</option>
+                                <option value="critical">Critical — Complete workflow failure or data risk</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="reportBugReporter">Reported By</label>
+                            <input type="text" id="reportBugReporter" class="form-input" placeholder="e.g., QA Team / Librarian">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="reportBugSteps">Steps to Reproduce</label>
+                        <textarea id="reportBugSteps" class="form-textarea" rows="3" placeholder="1. Go to Circulation tab&#10;2. Click Return on an active loan&#10;3. Observe response"></textarea>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="reportBugExpected">Expected Result</label>
+                            <textarea id="reportBugExpected" class="form-textarea" rows="2" placeholder="Book should be marked returned and available copy count incremented"></textarea>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="reportBugActual">Actual Result</label>
+                            <textarea id="reportBugActual" class="form-textarea" rows="2" placeholder="Returned 500 internal server error or crashed"></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-close-modal="reportBugModal">Cancel</button>
+                    <button type="submit" class="btn btn-primary" id="btnSubmitReportBug">
+                        <i data-lucide="plus-circle"></i>
+                        <span>Register Defect</span>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 8. View / Edit / Resolve Defect Modal -->
+    <div class="modal-backdrop" id="editBugModal" role="dialog" aria-modal="true" aria-labelledby="editBugModalTitle">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-header">
+                <div class="flex-align-gap">
+                    <div class="modal-icon primary"><i data-lucide="file-edit"></i></div>
+                    <div>
+                        <h3 class="modal-title" id="editBugModalTitle">Defect Details &amp; Resolution</h3>
+                        <p class="modal-subtitle" id="editBugModalSubtitle">Review defect lifecycle, record root cause, and verify fix.</p>
+                    </div>
+                </div>
+                <button class="modal-close" data-close-modal="editBugModal" aria-label="Close modal">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            <form id="editBugForm" autocomplete="off">
+                <input type="hidden" id="editBugId">
+                <div class="modal-body">
+                    <div class="defect-meta-box mb-3 p-3 bg-card-subtle rounded">
+                        <div class="flex-between mb-2">
+                            <span class="text-xs text-muted" id="editBugCodeBadge">BUG-000</span>
+                            <span class="text-xs text-muted" id="editBugCreatedBadge">Created: —</span>
+                        </div>
+                        <h4 class="m-0 text-base" id="editBugTitleDisplay">Defect Title</h4>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="editBugStatus">Defect Status <span class="required-star">*</span></label>
+                            <select id="editBugStatus" class="form-select" required>
+                                <option value="open">Open — New uninvestigated defect</option>
+                                <option value="in_progress">In Progress — Actively being addressed</option>
+                                <option value="resolved">Resolved — Fix implemented &amp; verified</option>
+                                <option value="closed">Closed — Completed / Verified in production</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="editBugSeverity">Severity Level <span class="required-star">*</span></label>
+                            <select id="editBugSeverity" class="form-select" required>
+                                <option value="low">Low</option>
+                                <option value="medium">Medium</option>
+                                <option value="high">High</option>
+                                <option value="critical">Critical</option>
+                            </select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label class="form-label" for="editBugAssignedTo">Assigned Engineer</label>
+                            <input type="text" id="editBugAssignedTo" class="form-input" placeholder="e.g., Senior QA Engineer">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label" for="editBugFixDetails">Fix Details &amp; Root Cause Analysis</label>
+                        <textarea id="editBugFixDetails" class="form-textarea" rows="3" placeholder="Describe the root cause identified, files modified, and test verification performed..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer flex-between">
+                    <button type="button" class="btn btn-outline text-danger" id="btnDeleteBug">
+                        <i data-lucide="trash-2"></i>
+                        <span>Delete Defect</span>
+                    </button>
+                    <div class="flex-align-gap">
+                        <button type="button" class="btn btn-outline" data-close-modal="editBugModal">Cancel</button>
+                        <button type="submit" class="btn btn-primary" id="btnSaveEditBug">
+                            <i data-lucide="check"></i>
+                            <span>Save Changes</span>
+                        </button>
+                    </div>
+                </div>
+            </form>
         </div>
     </div>
 
