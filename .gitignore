@@ -21,3 +21,12 @@ __pycache__/
 
 # Local uploads (review before committing)
 uploads/
+# Local backup
+backend_backup/
+
+# SQLite databases
+*.sqlite
+*.sqlite3
+
+# Uploaded images (keep local)
+uploads/
