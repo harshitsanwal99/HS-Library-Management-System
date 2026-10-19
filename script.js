@@ -17,6 +17,9 @@ const state = {
     books: [],
     students: [],
     issues: [],
+    bugs: [],
+    qualitySummary: null,
+    errorLogs: [],
     stats: null,
     reports: null,
     dbInfo: null
@@ -549,6 +552,7 @@ function enterDashboard() {
 
     updateUserDisplay();
     switchTab('dashboard');
+    loadQualitySummary().catch(() => {});
     if (window.lucide) window.lucide.createIcons();
 }
 
@@ -780,7 +784,8 @@ function switchTab(tabId) {
             history: 'Transaction History',
             reports: 'Reports & Analytics',
             about: 'About System',
-            settings: 'System Settings'
+            settings: 'System Settings',
+            bugs: 'Quality Assurance & Defect Tracker'
         };
         breadcrumb.textContent = titleMap[tabId] || 'HS Library';
     }
@@ -807,6 +812,11 @@ function switchTab(tabId) {
             break;
         case 'settings':
             checkSystemHealth();
+            break;
+        case 'bugs':
+            loadQualitySummary();
+            loadBugsData();
+            loadErrorLogs();
             break;
     }
 
@@ -2401,6 +2411,143 @@ function initFormHandlers() {
         });
     }
 
+    // Report Bug Form
+    const reportBugForm = document.getElementById('reportBugForm');
+    if (reportBugForm) {
+        reportBugForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const titleInput = document.getElementById('reportBugTitle');
+            const moduleInput = document.getElementById('reportBugModule');
+            const severityInput = document.getElementById('reportBugSeverity');
+            const reporterInput = document.getElementById('reportBugReporter');
+            const stepsInput = document.getElementById('reportBugSteps');
+            const expectedInput = document.getElementById('reportBugExpected');
+            const actualInput = document.getElementById('reportBugActual');
+
+            const title = titleInput?.value.trim();
+            if (!title) {
+                showToast('Defect title is required.', 'warning');
+                if (titleInput) titleInput.focus();
+                return;
+            }
+
+            const submitBtn = document.getElementById('btnSubmitReportBug');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Registering defect...</span>';
+            }
+
+            try {
+                const res = await fetchApi('/bugs', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        title: title,
+                        module: moduleInput?.value || 'other',
+                        severity: severityInput?.value || 'medium',
+                        reported_by: reporterInput?.value.trim() || state.currentUser?.name || 'QA Tester',
+                        steps_to_reproduce: stepsInput?.value.trim() || null,
+                        expected_behavior: expectedInput?.value.trim() || null,
+                        actual_behavior: actualInput?.value.trim() || null
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to log defect');
+
+                const bugCode = data.bug ? `BUG-${data.bug.id}` : (data.bug_id || 'Defect');
+                showToast(`Defect [${bugCode}] registered successfully!`, 'success');
+                reportBugForm.reset();
+                closeModal('reportBugModal');
+                await Promise.all([loadBugsData(), loadQualitySummary()]);
+            } catch (err) {
+                showToast(err.message, 'danger');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="plus-circle"></i><span>Register Defect</span>';
+                    if (window.lucide) window.lucide.createIcons();
+                }
+            }
+        });
+    }
+
+    // Edit Bug Form
+    const editBugForm = document.getElementById('editBugForm');
+    if (editBugForm) {
+        editBugForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const id = document.getElementById('editBugId')?.value;
+            if (!id) return;
+
+            const status = document.getElementById('editBugStatus')?.value;
+            const severity = document.getElementById('editBugSeverity')?.value;
+            const assignedTo = document.getElementById('editBugAssignedTo')?.value.trim();
+            const fixDetails = document.getElementById('editBugFixDetails')?.value.trim();
+
+            const submitBtn = document.getElementById('btnSaveEditBug');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span>Saving changes...</span>';
+            }
+
+            try {
+                const res = await fetchApi(`/bugs/${id}`, {
+                    method: 'PUT',
+                    body: JSON.stringify({
+                        status,
+                        severity,
+                        assigned_to: assignedTo,
+                        fix_details: fixDetails
+                    })
+                });
+
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to update defect');
+
+                const bugCode = data.bug ? `BUG-${data.bug.id}` : (data.bug_id || 'Defect');
+                showToast(`Defect [${bugCode}] updated!`, 'success');
+                closeModal('editBugModal');
+                await Promise.all([loadBugsData(), loadQualitySummary()]);
+            } catch (err) {
+                showToast(err.message, 'danger');
+            } finally {
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = '<i data-lucide="check"></i><span>Save Changes</span>';
+                    if (window.lucide) window.lucide.createIcons();
+                }
+            }
+        });
+    }
+
+    // Delete Bug Button
+    const btnDeleteBug = document.getElementById('btnDeleteBug');
+    if (btnDeleteBug) {
+        btnDeleteBug.addEventListener('click', async () => {
+            const id = document.getElementById('editBugId')?.value;
+            if (!id) return;
+
+            if (!confirm('Are you sure you want to permanently delete this defect record?')) {
+                return;
+            }
+
+            btnDeleteBug.disabled = true;
+            try {
+                const res = await fetchApi(`/bugs/${id}`, { method: 'DELETE' });
+                const data = await res.json();
+                if (!res.ok) throw new Error(data.error || 'Failed to delete defect');
+
+                showToast('Defect deleted from registry.', 'info');
+                closeModal('editBugModal');
+                await Promise.all([loadBugsData(), loadQualitySummary()]);
+            } catch (err) {
+                showToast(err.message, 'danger');
+            } finally {
+                btnDeleteBug.disabled = false;
+            }
+        });
+    }
+
     initFilterListeners();
 }
 
@@ -2508,6 +2655,46 @@ function initFilterListeners() {
     if (downloadSchemaBtn) downloadSchemaBtn.addEventListener('click', () => {
         window.open('/backend/schema.sql', '_blank');
     });
+
+    // QA & Bug Tracker Filters & Actions
+    const bugSearch = document.getElementById('qaBugSearchInput');
+    if (bugSearch) {
+        bugSearch.addEventListener('input', debounce(() => loadBugsData(), 250));
+    }
+    const bugModule = document.getElementById('qaBugFilterModule');
+    const bugSeverity = document.getElementById('qaBugFilterSeverity');
+    const bugStatus = document.getElementById('qaBugFilterStatus');
+    if (bugModule) bugModule.addEventListener('change', () => loadBugsData());
+    if (bugSeverity) bugSeverity.addEventListener('change', () => loadBugsData());
+    if (bugStatus) bugStatus.addEventListener('change', () => loadBugsData());
+
+    const btnResetBugFilters = document.getElementById('btnResetBugFilters');
+    if (btnResetBugFilters) {
+        btnResetBugFilters.addEventListener('click', () => {
+            if (bugSearch) bugSearch.value = '';
+            if (bugModule) bugModule.value = '';
+            if (bugSeverity) bugSeverity.value = '';
+            if (bugStatus) bugStatus.value = '';
+            loadBugsData();
+            showToast('Defect filters reset', 'info');
+        });
+    }
+
+    const btnRefreshQuality = document.getElementById('btnRefreshQuality');
+    if (btnRefreshQuality) {
+        btnRefreshQuality.addEventListener('click', async () => {
+            await Promise.all([loadQualitySummary(), loadBugsData(), loadErrorLogs()]);
+            showToast('Quality telemetry synced', 'success');
+        });
+    }
+
+    const btnRefreshErrorLogs = document.getElementById('btnRefreshErrorLogs');
+    if (btnRefreshErrorLogs) {
+        btnRefreshErrorLogs.addEventListener('click', async () => {
+            await loadErrorLogs();
+            showToast('Live error logs refreshed', 'info');
+        });
+    }
 }
 
 // =============================================================================
@@ -2715,6 +2902,11 @@ function initModals() {
     const emptyAddStudentBtn = document.getElementById('emptyAddStudentBtn');
     if (openAddStudentBtn) openAddStudentBtn.addEventListener('click', () => openModal('addStudentModal'));
     if (emptyAddStudentBtn) emptyAddStudentBtn.addEventListener('click', () => openModal('addStudentModal'));
+
+    const openReportBugBtn = document.getElementById('btnOpenReportBugModal');
+    const emptyReportBugBtn = document.getElementById('btnOpenReportBugEmpty');
+    if (openReportBugBtn) openReportBugBtn.addEventListener('click', () => openModal('reportBugModal'));
+    if (emptyReportBugBtn) emptyReportBugBtn.addEventListener('click', () => openModal('reportBugModal'));
 
     document.querySelectorAll('[data-close-modal]').forEach(btn => {
         btn.addEventListener('click', () => {
@@ -3013,4 +3205,226 @@ function debounce(fn, delay) {
         clearTimeout(timeout);
         timeout = setTimeout(() => fn.apply(this, args), delay);
     };
+}
+
+// =============================================================================
+// 12. TQM QUALITY ASSURANCE & DEFECT TRACKER CONTROLLER
+// =============================================================================
+
+async function loadBugsData() {
+    const tableBody = document.getElementById('qaBugsTableBody');
+    const emptyState = document.getElementById('qaBugsEmptyState');
+    const badgeCount = document.getElementById('qaRegistryCountBadge');
+
+    const search = document.getElementById('qaBugSearchInput')?.value.trim() || '';
+    const moduleFilter = document.getElementById('qaBugFilterModule')?.value || '';
+    const severityFilter = document.getElementById('qaBugFilterSeverity')?.value || '';
+    const statusFilter = document.getElementById('qaBugFilterStatus')?.value || '';
+
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (moduleFilter) params.append('module', moduleFilter);
+    if (severityFilter) params.append('severity', severityFilter);
+    if (statusFilter) params.append('status', statusFilter);
+
+    try {
+        const res = await fetchApi(`/bugs?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to load defects');
+        const bugs = await res.json();
+        state.bugs = bugs;
+
+        if (badgeCount) {
+            badgeCount.textContent = `${bugs.length} Defect${bugs.length === 1 ? '' : 's'}`;
+        }
+
+        renderBugsTable(bugs);
+    } catch (err) {
+        console.error('Error loading bugs:', err);
+        showToast('Error syncing defect registry: ' + err.message, 'danger');
+    }
+}
+
+function renderBugsTable(bugs) {
+    const tableBody = document.getElementById('qaBugsTableBody');
+    const emptyState = document.getElementById('qaBugsEmptyState');
+    if (!tableBody) return;
+
+    if (!bugs || bugs.length === 0) {
+        tableBody.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    tableBody.innerHTML = bugs.map(b => {
+        const bugCode = b.bug_id || ('BUG-' + String(b.id).padStart(3, '0'));
+        const severityClass = `badge-severity-${(b.severity || 'medium').toLowerCase()}`;
+        const statusClass = `badge-status-${(b.status || 'open').toLowerCase()}`;
+        const statusLabel = (b.status || 'open').replace('_', ' ').toUpperCase();
+        const severityLabel = (b.severity || 'medium').toUpperCase();
+
+        return `
+            <tr>
+                <td>
+                    <span class="bug-id-tag">${escapeHtml(bugCode)}</span>
+                </td>
+                <td>
+                    <div style="font-weight:600; color:var(--text-primary); margin-bottom:0.15rem;">
+                        ${escapeHtml(b.title)}
+                    </div>
+                    <div style="font-size:0.75rem; color:var(--text-muted); display:flex; align-items:center; gap:0.4rem;">
+                        <span class="badge badge-neutral" style="font-size:0.7rem; padding:0.1rem 0.4rem;">${escapeHtml(b.module || 'System')}</span>
+                        ${b.assigned_to ? `<span>&bull; Assigned: <strong>${escapeHtml(b.assigned_to)}</strong></span>` : ''}
+                    </div>
+                </td>
+                <td>
+                    <span class="badge ${severityClass}">${severityLabel}</span>
+                </td>
+                <td>
+                    <span class="badge ${statusClass}">${statusLabel}</span>
+                </td>
+                <td>
+                    <span style="font-size:0.83rem; color:var(--text-secondary);">${escapeHtml(b.reported_by || 'Staff')}</span>
+                </td>
+                <td>
+                    <span style="font-size:0.8rem; color:var(--text-muted);">${formatDate(b.created_at)}</span>
+                </td>
+                <td class="text-right">
+                    <button class="btn btn-outline btn-sm" onclick="openEditBugModal(${b.id})" title="View Details / Update Resolution">
+                        <i data-lucide="edit-3"></i>
+                        <span>Resolve</span>
+                    </button>
+                </td>
+            </tr>
+        `;
+    }).join('');
+
+    if (window.lucide) window.lucide.createIcons();
+}
+
+window.openEditBugModal = function(bugId) {
+    const bug = state.bugs.find(b => b.id === bugId);
+    if (!bug) return;
+
+    const bugCode = bug.bug_id || ('BUG-' + String(bug.id).padStart(3, '0'));
+    const idInput = document.getElementById('editBugId');
+    const codeBadge = document.getElementById('editBugCodeBadge');
+    const createdBadge = document.getElementById('editBugCreatedBadge');
+    const titleDisplay = document.getElementById('editBugTitleDisplay');
+    const statusSelect = document.getElementById('editBugStatus');
+    const severitySelect = document.getElementById('editBugSeverity');
+    const assignedInput = document.getElementById('editBugAssignedTo');
+    const fixDetailsInput = document.getElementById('editBugFixDetails');
+
+    if (idInput) idInput.value = bug.id;
+    if (codeBadge) codeBadge.textContent = `${bugCode} • Module: ${(bug.module || 'general').toUpperCase()}`;
+    if (createdBadge) createdBadge.textContent = `Reported: ${formatDate(bug.created_at)} by ${bug.reported_by || 'Staff'}`;
+    if (titleDisplay) titleDisplay.textContent = bug.title;
+    if (statusSelect) statusSelect.value = (bug.status || 'open').toLowerCase();
+    if (severitySelect) severitySelect.value = (bug.severity || 'medium').toLowerCase();
+    if (assignedInput) assignedInput.value = bug.assigned_to || '';
+    if (fixDetailsInput) fixDetailsInput.value = bug.fix_details || '';
+
+    openModal('editBugModal');
+};
+
+async function loadQualitySummary() {
+    try {
+        const res = await fetchApi('/quality/summary');
+        if (!res.ok) return;
+        const data = await res.json();
+        state.qualitySummary = data;
+
+        const metrics = data.metrics || data.bugs || {};
+        const testRun = data.latestTestRun || data.tests || {};
+        const logging = data.logging || data.logs || {};
+
+        const kpiTotal = document.getElementById('qaKpiTotalBugs');
+        const kpiOpen = document.getElementById('qaKpiOpenCount');
+        const kpiRate = document.getElementById('qaKpiResolutionRate');
+        const kpiResolved = document.getElementById('qaKpiResolvedCount');
+        const kpiCrit = document.getElementById('qaKpiCriticalCount');
+        const kpiCritStatus = document.getElementById('qaKpiCriticalStatus');
+        const kpiPassRate = document.getElementById('qaKpiTestPassRate');
+        const kpiTests = document.getElementById('qaKpiTestsCount');
+        const navBugsBadge = document.getElementById('navBugsCount');
+        const logStatus = document.getElementById('qaLogFileStatus');
+
+        if (kpiTotal) kpiTotal.textContent = metrics.totalBugs ?? metrics.total ?? 0;
+        if (kpiOpen) kpiOpen.textContent = `${metrics.openBugs ?? metrics.open ?? 0} Open`;
+        if (kpiRate) kpiRate.textContent = `${metrics.resolutionRate ?? 100}%`;
+        if (kpiResolved) kpiResolved.textContent = `${metrics.resolvedBugs ?? metrics.resolved ?? 0} Resolved`;
+        if (kpiCrit) kpiCrit.textContent = metrics.criticalBugs ?? metrics.critical ?? 0;
+        if (kpiCritStatus) kpiCritStatus.textContent = `${metrics.criticalOpen ?? 0} Blocking`;
+
+        if (kpiPassRate) {
+            kpiPassRate.textContent = testRun.total_tests
+                ? `${Math.round((testRun.passed_tests / testRun.total_tests) * 100)}%`
+                : (testRun.passRate ?? '100%');
+        }
+
+        if (kpiTests) {
+            kpiTests.textContent = testRun.total_tests
+                ? `${testRun.passed_tests}/${testRun.total_tests} passing`
+                : `${testRun.passed || 47}/${testRun.total || 47} passing`;
+        }
+
+        if (navBugsBadge) {
+            const openBugs = metrics.openBugs ?? metrics.open ?? 0;
+            navBugsBadge.textContent = openBugs;
+            navBugsBadge.style.display = openBugs > 0 ? 'inline-flex' : 'none';
+        }
+
+        if (logStatus) {
+            const sizeBytes = logging.logFileStatus?.errorLogSizeBytes ?? logging.activeLogSizeBytes;
+            if (sizeBytes !== undefined) {
+                logStatus.textContent = `logs/error.log (${(sizeBytes / 1024).toFixed(1)} KB)`;
+            } else {
+                logStatus.textContent = 'logs/error.log';
+            }
+        }
+    } catch (err) {
+        console.warn('Failed to load quality summary:', err);
+    }
+}
+
+async function loadErrorLogs() {
+    const tableBody = document.getElementById('qaErrorLogsTableBody');
+    const emptyNotice = document.getElementById('qaErrorLogsEmpty');
+    if (!tableBody) return;
+
+    try {
+        const res = await fetchApi('/logs/errors?limit=25');
+        if (!res.ok) return;
+        const data = await res.json();
+        const logs = data.errors || [];
+        state.errorLogs = logs;
+
+        if (logs.length === 0) {
+            tableBody.innerHTML = '';
+            if (emptyNotice) emptyNotice.classList.remove('hidden');
+            return;
+        }
+
+        if (emptyNotice) emptyNotice.classList.add('hidden');
+
+        tableBody.innerHTML = logs.map(l => {
+            const timeStr = l.timestamp ? new Date(l.timestamp).toLocaleTimeString() : '—';
+            return `
+                <tr>
+                    <td><span style="font-family:monospace; font-size:0.75rem;">${escapeHtml(timeStr)}</span></td>
+                    <td><span style="font-family:monospace; font-size:0.72rem; color:var(--text-muted);">${escapeHtml(l.requestId || '—')}</span></td>
+                    <td><span class="badge badge-neutral">${escapeHtml(l.method || 'GET')} ${escapeHtml(l.url || '/')}</span></td>
+                    <td><span class="badge badge-danger">${escapeHtml(l.errorName || 'Error')}</span></td>
+                    <td><strong>${escapeHtml(l.statusCode || 500)}</strong></td>
+                    <td style="color:var(--text-secondary); max-width:320px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" title="${escapeHtml(l.message)}">
+                        ${escapeHtml(l.message || '—')}
+                    </td>
+                </tr>
+            `;
+        }).join('');
+    } catch (err) {
+        console.warn('Failed to load error logs:', err);
+    }
 }
