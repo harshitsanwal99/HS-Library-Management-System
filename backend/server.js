@@ -472,7 +472,8 @@ app.post('/api/auth/forgot-password', rateLimitLogin, async (req, res, next) => 
             message: 'If an account is associated with this email, password reset instructions have been generated.',
             devMode: !isSmtpConfigured,
             devResetUrl: !isSmtpConfigured ? `/#reset-password?token=${rawToken}` : undefined,
-            devToken: !isSmtpConfigured ? rawToken : undefined
+            devToken: !isSmtpConfigured ? rawToken : undefined,
+            resetToken: !isSmtpConfigured ? rawToken : undefined
         });
     } catch (err) {
         next(err);
