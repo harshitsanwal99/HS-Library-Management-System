@@ -60,6 +60,19 @@ function validateId(id, fieldName = 'ID') {
 /**
  * Validate and clean ISBN (supports ISBN-10 and ISBN-13 format with checksum verification)
  */
+
+/**
+ * Standardize and hyphenate 13-digit ISBN for uniform catalog storage
+ */
+function formatIsbnStandard(isbn) {
+    if (!isbn || typeof isbn !== 'string') return null;
+    const clean = isbn.replace(/[^0-9X]/gi, '').toUpperCase();
+    if (clean.length === 13) {
+        return `${clean.slice(0, 3)}-${clean.slice(3, 4)}-${clean.slice(4, 6)}-${clean.slice(6, 12)}-${clean.slice(12)}`;
+    }
+    return isbn.trim();
+}
+
 function validateIsbnChecksum(isbn) {
     if (!isbn || typeof isbn !== 'string') return false;
     const clean = isbn.replace(/[\s\-]/g, '').toUpperCase();
@@ -556,6 +569,7 @@ module.exports = {
     normalizePhoneNumber,
     formatTitleCase,
     validatePublicationYear,
+    formatIsbnStandard,
     VALID_BUG_MODULES,
     VALID_BUG_SEVERITIES,
     VALID_BUG_STATUSES
