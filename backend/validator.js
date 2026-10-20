@@ -134,6 +134,20 @@ function formatTitleCase(str) {
     return str.trim().replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
 }
 
+
+/**
+ * Validate book publication year against realistic chronological limits
+ */
+function validatePublicationYear(year, maxFutureYears = 1) {
+    if (year === undefined || year === null || year === '') return new Date().getFullYear();
+    const yearNum = Number(year);
+    const currentYear = new Date().getFullYear();
+    if (!Number.isInteger(yearNum) || yearNum < 1000 || yearNum > currentYear + maxFutureYears) {
+        return null;
+    }
+    return yearNum;
+}
+
 function validateBookInput(data, isUpdate = false) {
     if (!data || typeof data !== 'object') {
         throw new BadRequestError('Request body must be a valid JSON object.');
@@ -541,6 +555,7 @@ module.exports = {
     calculateOverdueFine,
     normalizePhoneNumber,
     formatTitleCase,
+    validatePublicationYear,
     VALID_BUG_MODULES,
     VALID_BUG_SEVERITIES,
     VALID_BUG_STATUSES
