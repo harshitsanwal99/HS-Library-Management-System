@@ -483,6 +483,30 @@ function validateBugInput(data, isUpdate = false) {
     };
 }
 
+
+/**
+ * Calculate overdue days and late fine for circulation loans
+ */
+function calculateOverdueFine(dueDate, returnDate = new Date(), dailyRate = 5, gracePeriodDays = 0) {
+    if (!dueDate) return { isOverdue: false, overdueDays: 0, fineAmount: 0 };
+    const due = new Date(dueDate);
+    const returned = new Date(returnDate);
+    if (isNaN(due.getTime()) || isNaN(returned.getTime())) {
+        return { isOverdue: false, overdueDays: 0, fineAmount: 0 };
+    }
+    const diffTime = returned.setHours(0,0,0,0) - due.setHours(0,0,0,0);
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays <= gracePeriodDays) {
+        return { isOverdue: false, overdueDays: 0, fineAmount: 0 };
+    }
+    const chargeableDays = diffDays - gracePeriodDays;
+    return {
+        isOverdue: true,
+        overdueDays: diffDays,
+        fineAmount: Math.max(0, chargeableDays * dailyRate)
+    };
+}
+
 module.exports = {
     validateId,
     validateIsbn,
@@ -492,6 +516,7 @@ module.exports = {
     validateStudentInput,
     validateIssueInput,
     validateBugInput,
+    calculateOverdueFine,
     VALID_BUG_MODULES,
     VALID_BUG_SEVERITIES,
     VALID_BUG_STATUSES
