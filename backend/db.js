@@ -454,7 +454,18 @@ function runSQLiteMigrations() {
         CREATE INDEX IF NOT EXISTS idx_test_runs_date ON test_runs(run_date);
     `);
 
-    // Seed initial sample bugs for Library 1 if empty
+    // Seed default library and librarian if not present FIRST (to satisfy foreign keys)
+    const libCheck = sqliteDb.prepare('SELECT COUNT(*) as count FROM libraries').get();
+    if (libCheck.count === 0) {
+        sqliteDb.prepare("INSERT INTO libraries (id, name) VALUES (1, 'HS Central Library')").run();
+        const defaultHash = bcrypt.hashSync('Admin@123', 10);
+        sqliteDb.prepare(`
+            INSERT INTO librarians (id, library_id, name, email, password_hash, phone, role)
+            VALUES (1, 1, 'Head Librarian', 'librarian@hslibrary.edu', ?, '+91 98765 00000', 'admin')
+        `).run(defaultHash);
+    }
+
+    // Seed initial sample bugs for Library 1 if empty (AFTER Library 1 exists)
     const bugCheck = sqliteDb.prepare('SELECT COUNT(*) as count FROM bugs').get();
     if (bugCheck.count === 0) {
         const seedBugs = [
@@ -470,17 +481,6 @@ function runSQLiteMigrations() {
         for (const b of seedBugs) {
             insertBug.run(...b);
         }
-    }
-
-    // Seed default library and librarian if not present
-    const libCheck = sqliteDb.prepare('SELECT COUNT(*) as count FROM libraries').get();
-    if (libCheck.count === 0) {
-        sqliteDb.prepare("INSERT INTO libraries (id, name) VALUES (1, 'HS Central Library')").run();
-        const defaultHash = bcrypt.hashSync('Admin@123', 10);
-        sqliteDb.prepare(`
-            INSERT INTO librarians (id, library_id, name, email, password_hash, phone, role)
-            VALUES (1, 1, 'Head Librarian', 'librarian@hslibrary.edu', ?, '+91 98765 00000', 'admin')
-        `).run(defaultHash);
     }
 
     // Seed initial books, students, and issues if empty
@@ -511,7 +511,7 @@ async function seedInitialDataMySQL() {
     }
 
     const students = [
-        [1, 'HS-2024-001', 'Anushka Puri', 'anushka.puri@hslibrary.edu', 'Computer Science', '+91 98765 43210'],
+        [1, 'HS-2024-001', 'Aditya Verma', 'aditya.verma@hslibrary.edu', 'Computer Science', '+91 98765 43210'],
         [1, 'HS-2024-002', 'Rohan Sharma', 'rohan.sharma@hslibrary.edu', 'Information Technology', '+91 98111 22334'],
         [1, 'HS-2024-003', 'Priya Patel', 'priya.patel@hslibrary.edu', 'Data Science', '+91 98222 33445'],
         [1, 'HS-2024-004', 'Aarav Mehta', 'aarav.mehta@hslibrary.edu', 'Artificial Intelligence', '+91 98333 44556'],
@@ -544,7 +544,7 @@ function seedInitialDataSQLite() {
     insertBook.run(1, 'Computer Networking: A Top-Down Approach', 'James F. Kurose, Keith W. Ross', 'Networking', '978-0133594140', 'NET-202', 2021, 'available');
 
     const insertStudent = sqliteDb.prepare('INSERT INTO students (library_id, student_id, name, email, department, phone) VALUES (?, ?, ?, ?, ?, ?)');
-    insertStudent.run(1, 'HS-2024-001', 'Anushka Puri', 'anushka.puri@hslibrary.edu', 'Computer Science', '+91 98765 43210');
+    insertStudent.run(1, 'HS-2024-001', 'Aditya Verma', 'aditya.verma@hslibrary.edu', 'Computer Science', '+91 98765 43210');
     insertStudent.run(1, 'HS-2024-002', 'Rohan Sharma', 'rohan.sharma@hslibrary.edu', 'Information Technology', '+91 98111 22334');
     insertStudent.run(1, 'HS-2024-003', 'Priya Patel', 'priya.patel@hslibrary.edu', 'Data Science', '+91 98222 33445');
     insertStudent.run(1, 'HS-2024-004', 'Aarav Mehta', 'aarav.mehta@hslibrary.edu', 'Artificial Intelligence', '+91 98333 44556');
