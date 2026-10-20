@@ -21,7 +21,7 @@ const assert = require('node:assert/strict');
 const http = require('http');
 const app = require('./server');
 const db = require('./db');
-const { validateIsbnChecksum, calculateOverdueFine, normalizePhoneNumber, formatTitleCase, validatePublicationYear } = require('./validator');
+const { validateIsbnChecksum, calculateOverdueFine, normalizePhoneNumber, formatTitleCase, validatePublicationYear, formatIsbnStandard } = require('./validator');
 
 let server;
 let baseUrl;
@@ -277,6 +277,13 @@ describe('1. Authentication Module & Access Control', () => {
 // 2. BOOKS MANAGEMENT & STRICT VALIDATION TESTS
 // =====================================================================
 describe('2. Books Module & Strict Input Validation', () => {
+
+    it('should format 13-digit ISBN into standard canonical format', () => {
+        assert.equal(formatIsbnStandard('9780132350884'), '978-0-13-235088-4');
+        assert.equal(formatIsbnStandard('978-0132350884'), '978-0-13-235088-4');
+        assert.equal(formatIsbnStandard(''), null);
+        assert.equal(formatIsbnStandard(null), null);
+    });
 
     it('should validate publication year boundaries properly', () => {
         const currentYear = new Date().getFullYear();
