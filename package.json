@@ -1,7 +1,7 @@
 {
   "name": "hs-library-management-system",
-  "version": "2.5.0",
-  "description": "HS Library — Premium Multi-Library Management System",
+  "version": "2.5.1",
+  "description": "HS Library - Premium Multi-Library Management System",
   "private": true,
   "scripts": {
     "start": "npm --prefix backend start",
