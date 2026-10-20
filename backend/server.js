@@ -108,9 +108,13 @@ function rateLimitLogin(req, res, next) {
     if (record) {
         if (now < record.resetAt) {
             if (record.count >= MAX_LOGIN_ATTEMPTS) {
-                const remainingMin = Math.ceil((record.resetAt - now) / 60000);
+                const remainingSec = Math.ceil((record.resetAt - now) / 1000);
+                const remainingMin = Math.ceil(remainingSec / 60);
+                res.setHeader('Retry-After', String(remainingSec));
                 return res.status(429).json({
-                    error: `Too many failed login attempts. For security, please try again in ${remainingMin} minute(s).`
+                    code: 'RATE_LIMIT_EXCEEDED',
+                    error: `Too many failed login attempts. For security, please try again in ${remainingMin} minute(s).`,
+                    retry_after_seconds: remainingSec
                 });
             }
         } else {
