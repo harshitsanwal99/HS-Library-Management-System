@@ -21,7 +21,7 @@ const assert = require('node:assert/strict');
 const http = require('http');
 const app = require('./server');
 const db = require('./db');
-const { validateIsbnChecksum, calculateOverdueFine, normalizePhoneNumber, formatTitleCase } = require('./validator');
+const { validateIsbnChecksum, calculateOverdueFine, normalizePhoneNumber, formatTitleCase, validatePublicationYear } = require('./validator');
 
 let server;
 let baseUrl;
@@ -277,6 +277,16 @@ describe('1. Authentication Module & Access Control', () => {
 // 2. BOOKS MANAGEMENT & STRICT VALIDATION TESTS
 // =====================================================================
 describe('2. Books Module & Strict Input Validation', () => {
+
+    it('should validate publication year boundaries properly', () => {
+        const currentYear = new Date().getFullYear();
+        assert.equal(validatePublicationYear(2020), 2020);
+        assert.equal(validatePublicationYear(currentYear), currentYear);
+        assert.equal(validatePublicationYear(currentYear + 1), currentYear + 1);
+        assert.equal(validatePublicationYear(-500), null);
+        assert.equal(validatePublicationYear(currentYear + 10), null);
+        assert.equal(validatePublicationYear('invalid'), null);
+    });
 
     it('should format catalog strings to Title Case properly', () => {
         assert.equal(formatTitleCase('computer science'), 'Computer Science');
