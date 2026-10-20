@@ -40,14 +40,29 @@
 
                 <!-- 1. SIGN IN FORM -->
                 <div class="auth-tab-content active" id="authSignInPane">
+                    <div class="demo-creds-box" id="demoCredsBox" style="background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 8px; padding: 12px 14px; margin-bottom: 16px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px;">
+                            <span style="font-weight: 600; font-size: 0.88rem; color: #6366f1; display: flex; align-items: center; gap: 6px;">
+                                <i data-lucide="sparkles" style="width: 15px; height: 15px;"></i> Quick Demo Account
+                            </span>
+                            <button type="button" id="quickDemoBtn" class="btn btn-sm" style="background: #4f46e5; color: #fff; padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border: none; cursor: pointer; font-weight: 500;">
+                                ⚡ Auto-Fill & Sign In
+                            </button>
+                        </div>
+                        <div style="font-size: 0.8rem; color: var(--text-muted, #94a3b8); line-height: 1.4;">
+                            <span><strong>Email:</strong> <code style="background: rgba(0,0,0,0.1); padding: 2px 5px; border-radius: 4px;">librarian@hslibrary.edu</code></span> &nbsp;|&nbsp;
+                            <span><strong>Password:</strong> <code style="background: rgba(0,0,0,0.1); padding: 2px 5px; border-radius: 4px;">Admin@123</code></span>
+                        </div>
+                    </div>
+
                     <form id="loginForm" novalidate>
                         <div class="form-group">
-                            <label for="loginLibraryName" class="required">Library Name</label>
+                            <label for="loginLibraryName">Library Name <span style="font-size: 0.8em; opacity: 0.7; font-weight: normal;">(Optional)</span></label>
                             <div class="input-with-icon">
                                 <i data-lucide="landmark" class="input-icon"></i>
-                                <input type="text" id="loginLibraryName" class="form-input" placeholder="e.g. HS Central Library" required autocomplete="organization">
+                                <input type="text" id="loginLibraryName" class="form-input" placeholder="e.g. HS Central Library" autocomplete="organization">
                             </div>
-                            <span class="field-hint">Specify your institution or campus library.</span>
+                            <span class="field-hint">Auto-detected from your librarian account.</span>
                         </div>
 
                         <div class="form-group">

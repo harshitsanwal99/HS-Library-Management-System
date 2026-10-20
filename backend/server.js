@@ -27,6 +27,7 @@ const validator = require('./validator');
 setupGlobalProcessErrorHandlers();
 
 const app = express();
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 5000;
 const DEFAULT_LOAN_DAYS = parseInt(process.env.DEFAULT_LOAN_DAYS || '14', 10);
 const JWT_SECRET = process.env.JWT_SECRET || 'hs_library_secure_jwt_secret_key_2026_enterprise_auth';
@@ -355,12 +356,12 @@ app.post('/api/auth/login', rateLimitLogin, async (req, res, next) => {
             return res.status(401).json({ error: 'Invalid credentials or library details.' });
         }
 
-        // If library_name was provided on login, verify it matches the librarian's library
+        // Library name is optional; librarian email is globally unique to their institution
         if (library_name && library_name.trim()) {
             const cleanLibName = library_name.trim().toLowerCase();
-            if (cleanLibName !== librarian.library_name.toLowerCase()) {
-                recordFailedLogin(req);
-                return res.status(401).json({ error: 'Invalid credentials or library details.' });
+            const actualLibName = (librarian.library_name || '').toLowerCase();
+            if (cleanLibName !== actualLibName && !actualLibName.includes(cleanLibName) && !cleanLibName.includes(actualLibName)) {
+                console.log(`[HS Library] User specified "${cleanLibName}" but registered to "${actualLibName}". Permitting login on verified credentials.`);
             }
         }
 

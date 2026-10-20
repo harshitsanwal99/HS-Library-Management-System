@@ -153,6 +153,26 @@ function initAuthUI() {
         loginForm.addEventListener('submit', handleLoginSubmit);
     }
 
+    // Quick Demo Account Button
+    const quickDemoBtn = document.getElementById('quickDemoBtn');
+    if (quickDemoBtn) {
+        quickDemoBtn.addEventListener('click', () => {
+            const libInput = document.getElementById('loginLibraryName');
+            const emailInput = document.getElementById('loginEmail');
+            const passInput = document.getElementById('loginPassword');
+            if (libInput) libInput.value = 'HS Central Library';
+            if (emailInput) emailInput.value = 'librarian@hslibrary.edu';
+            if (passInput) passInput.value = 'Admin@123';
+            if (loginForm) {
+                if (typeof loginForm.requestSubmit === 'function') {
+                    loginForm.requestSubmit();
+                } else {
+                    loginForm.dispatchEvent(new Event('submit', { cancelable: true }));
+                }
+            }
+        });
+    }
+
     // 6. Register Form Submit
     const registerForm = document.getElementById('registerForm');
     if (registerForm) {
