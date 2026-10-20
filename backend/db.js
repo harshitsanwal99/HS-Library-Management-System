@@ -843,10 +843,24 @@ function getDbInfo() {
     };
 }
 
+function checkTableIndexes(tableName) {
+    if (!tableName || typeof tableName !== 'string') return [];
+    const cleanTable = tableName.replace(/[^a-zA-Z0-9_]/g, '');
+    if (activeDbType === 'sqlite' && sqliteDb) {
+        try {
+            return sqliteDb.prepare(`PRAGMA index_list(${cleanTable});`).all();
+        } catch (e) {
+            return [];
+        }
+    }
+    return [];
+}
+
 module.exports = {
     initDatabase,
     query,
     transaction,
     getDbInfo,
-    checkDatabaseIntegrity
+    checkDatabaseIntegrity,
+    checkTableIndexes
 };
