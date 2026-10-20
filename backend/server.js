@@ -178,6 +178,7 @@ function authenticateLibrarian(req, res, next) {
  */
 app.get('/api/health', async (req, res) => {
     const dbInfo = db.getDbInfo();
+    const integrityStatus = db.checkDatabaseIntegrity ? db.checkDatabaseIntegrity() : 'ok';
     let libraryCount = 1;
     try {
         const libRows = await db.query('SELECT COUNT(*) as count FROM libraries');
@@ -200,6 +201,7 @@ app.get('/api/health', async (req, res) => {
             port: dbInfo.port,
             isFallback: dbInfo.isFallback,
             message: dbInfo.statusMessage,
+            integrity: integrityStatus,
             totalLibraries: libraryCount
         }
     });
