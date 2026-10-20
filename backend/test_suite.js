@@ -873,4 +873,11 @@ describe('8. Quality Dashboard & Transaction Safety', () => {
         const logDump = JSON.stringify(res.data.errors);
         assert.equal(logDump.includes('Password@123'), false);
     });
+
+    it('should verify database index inspection utility checkTableIndexes', () => {
+        const indexes = db.checkTableIndexes('books');
+        assert.ok(Array.isArray(indexes));
+        assert.deepEqual(db.checkTableIndexes(''), []);
+        assert.deepEqual(db.checkTableIndexes(null), []);
+    });
 });
