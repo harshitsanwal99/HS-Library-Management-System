@@ -63,6 +63,7 @@ async function initDatabase() {
         sqliteDb = new DatabaseSync(dbPath);
         sqliteDb.exec('PRAGMA foreign_keys = ON;');
         sqliteDb.exec('PRAGMA journal_mode = WAL;');
+        sqliteDb.exec('PRAGMA synchronous = NORMAL;');
 
         activeDbType = 'sqlite';
         dbStatusMessage = `Operating in persistent SQLite mode [${DB_NAME}.db]. Fully persistent and transactional.`;
@@ -777,6 +778,19 @@ async function transaction(workCallback) {
     }
 }
 
+function checkDatabaseIntegrity() {
+    if (activeDbType === 'sqlite' && sqliteDb) {
+        try {
+            const stmt = sqliteDb.prepare('PRAGMA integrity_check;');
+            const res = stmt.get();
+            return res ? res.integrity_check : 'ok';
+        } catch (e) {
+            return 'error: ' + e.message;
+        }
+    }
+    return 'ok';
+}
+
 function getDbInfo() {
     return {
         type: activeDbType,
@@ -793,5 +807,6 @@ module.exports = {
     initDatabase,
     query,
     transaction,
-    getDbInfo
+    getDbInfo,
+    checkDatabaseIntegrity
 };
