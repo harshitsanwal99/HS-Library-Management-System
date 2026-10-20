@@ -2,6 +2,7 @@ const path = require('path');
 const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const { CURATED_BOOKS, TECH_BOOK_COVERS } = require('./curatedBooks');
+const { SCHOOL_K12_BOOKS } = require('./schoolBooks');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 let mysqlPool = null;
@@ -490,6 +491,7 @@ function runSQLiteMigrations() {
     }
     // Seed and sync curated collection (idempotent, safe)
     seedCuratedBooksSQLite(1);
+    seedSchoolBooksForAllLibrariesSQLite();
 }
 
 async function seedInitialDataMySQL() {
@@ -628,6 +630,44 @@ async function seedCuratedBooksMySQL(libraryId = 1) {
 /**
  * Idempotently seed and update curated novels, storybooks, and covers in SQLite
  */
+
+/**
+ * Seed 20 Nursery to Class 12 Hindi & English books for all libraries
+ */
+function seedSchoolBooksForAllLibrariesSQLite() {
+    try {
+        const libs = sqliteDb.prepare('SELECT id FROM libraries').all();
+        const checkStmt = sqliteDb.prepare('SELECT id FROM books WHERE library_id = ? AND LOWER(title) = LOWER(?)');
+        const insertStmt = sqliteDb.prepare(`
+            INSERT INTO books (library_id, title, author, category, language, isbn, shelf, publication_year, cover_image, description, status)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `);
+
+        for (const lib of libs) {
+            for (const b of SCHOOL_K12_BOOKS) {
+                const exists = checkStmt.get(lib.id, b.title);
+                if (!exists) {
+                    insertStmt.run(
+                        lib.id,
+                        b.title,
+                        b.author,
+                        b.category,
+                        b.language,
+                        b.isbn,
+                        b.shelf,
+                        b.publication_year,
+                        b.cover_image,
+                        b.description,
+                        b.status
+                    );
+                }
+            }
+        }
+    } catch (err) {
+        console.warn('[HS Library DB] School books seeding skipped/failed:', err.message);
+    }
+}
+
 function seedCuratedBooksSQLite(libraryId = 1) {
     try {
         const checkStmt = sqliteDb.prepare('SELECT id FROM books WHERE library_id = ? AND LOWER(title) = LOWER(?)');

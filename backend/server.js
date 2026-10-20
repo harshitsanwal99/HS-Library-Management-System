@@ -270,6 +270,19 @@ app.post('/api/auth/register', async (req, res, next) => {
             };
         });
 
+        // Seed 20 Nursery to Class 12 Hindi & English books for new library
+        try {
+            const { SCHOOL_K12_BOOKS } = require('./schoolBooks');
+            for (const b of SCHOOL_K12_BOOKS) {
+                await db.query(
+                    'INSERT INTO books (library_id, title, author, category, language, isbn, shelf, publication_year, cover_image, description, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+                    [result.libraryId, b.title, b.author, b.category, b.language, b.isbn, b.shelf, b.publication_year, b.cover_image, b.description, b.status]
+                );
+            }
+        } catch (seedErr) {
+            console.warn('[HS Library Auth] Auto-seeding school books failed:', seedErr.message);
+        }
+
         // Sign token
         const token = jwt.sign({
             librarianId: result.librarianId,
