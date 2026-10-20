@@ -3488,3 +3488,35 @@ async function loadErrorLogs() {
         console.warn('Failed to load error logs:', err);
     }
 }
+
+/**
+ * Real-time client-side input validator hook (Poka-Yoke UI Feedback)
+ */
+function bindLiveFormValidation(inputElem, validatorFn, errorMsg) {
+    if (!inputElem) return;
+    const feedback = inputElem.parentElement ? inputElem.parentElement.querySelector('.validation-feedback') : null;
+    inputElem.addEventListener('input', () => {
+        const val = inputElem.value.trim();
+        if (!val) {
+            inputElem.classList.remove('is-valid', 'is-invalid');
+            if (feedback) feedback.textContent = '';
+            return;
+        }
+        const isValid = validatorFn(val);
+        if (isValid) {
+            inputElem.classList.remove('is-invalid');
+            inputElem.classList.add('is-valid');
+            if (feedback) {
+                feedback.textContent = '✓ Valid';
+                feedback.className = 'validation-feedback success';
+            }
+        } else {
+            inputElem.classList.remove('is-valid');
+            inputElem.classList.add('is-invalid');
+            if (feedback) {
+                feedback.textContent = errorMsg;
+                feedback.className = 'validation-feedback error';
+            }
+        }
+    });
+}
