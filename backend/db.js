@@ -60,7 +60,7 @@ async function initDatabase() {
     // 2. Fallback to Node.js built-in SQLite engine
     try {
         const { DatabaseSync } = require('node:sqlite');
-        const dbPath = path.join(__dirname, `${DB_NAME}.db`);
+        const dbPath = process.env.VERCEL ? path.join('/tmp', `${DB_NAME}.db`) : path.join(__dirname, `${DB_NAME}.db`);
         sqliteDb = new DatabaseSync(dbPath);
         sqliteDb.exec('PRAGMA foreign_keys = ON;');
         sqliteDb.exec('PRAGMA journal_mode = WAL;');

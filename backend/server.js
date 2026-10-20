@@ -43,7 +43,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Uploads directory for book covers (persistent on disk across restarts)
-const uploadsRootDir = path.join(__dirname, '../uploads');
+const uploadsRootDir = process.env.VERCEL ? path.join('/tmp', 'uploads') : path.join(__dirname, '../uploads');
 const coversUploadDir = path.join(uploadsRootDir, 'covers');
 try {
     fs.mkdirSync(coversUploadDir, { recursive: true });
