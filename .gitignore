@@ -6,39 +6,25 @@ backend/node_modules/
 .env
 backend/.env
 
-# Database files
+# Local SQLite runtime databases (auto-initialized on first run)
 backend/*.db
 backend/*.db-shm
 backend/*.db-wal
+*.sqlite
+*.sqlite3
 
 # Logs
 *.log
 npm-debug.log*
+logs/
+
+# Backups
+backend_backup/
 
 # Python cache
 __pycache__/
 *.pyc
 
-# Local uploads (review before committing)
-uploads/
-# Local backup
-backend_backup/
-
-# SQLite databases
-*.sqlite
-*.sqlite3
-
-# Uploaded images (keep local)
-uploads/
-# Backend database files
-backend/*.db
-backend/*.db-shm
-backend/*.db-wal
-backend/*.sqlite
-backend/*.sqlite3
-
-# Backup folders
-backend_backup/
-
-# Dependencies
-backend/node_modules/
+# OS generated files
+.DS_Store
+Thumbs.db
