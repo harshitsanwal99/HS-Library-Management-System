@@ -21,7 +21,7 @@ const assert = require('node:assert/strict');
 const http = require('http');
 const app = require('./server');
 const db = require('./db');
-const { validateIsbnChecksum, calculateOverdueFine, normalizePhoneNumber } = require('./validator');
+const { validateIsbnChecksum, calculateOverdueFine, normalizePhoneNumber, formatTitleCase } = require('./validator');
 
 let server;
 let baseUrl;
@@ -277,6 +277,13 @@ describe('1. Authentication Module & Access Control', () => {
 // 2. BOOKS MANAGEMENT & STRICT VALIDATION TESTS
 // =====================================================================
 describe('2. Books Module & Strict Input Validation', () => {
+
+    it('should format catalog strings to Title Case properly', () => {
+        assert.equal(formatTitleCase('computer science'), 'Computer Science');
+        assert.equal(formatTitleCase('DATA STRUCTURES AND ALGORITHMS'), 'Data Structures And Algorithms');
+        assert.equal(formatTitleCase('h.g. wells'), 'H.g. Wells');
+        assert.equal(formatTitleCase(''), '');
+    });
 
     it('should reject adding a book with empty or whitespace title', async () => {
         const res = await request('/api/books', {
