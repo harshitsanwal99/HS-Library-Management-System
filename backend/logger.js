@@ -52,7 +52,12 @@ const SENSITIVE_KEYS = new Set([
     'secret',
     'reset_token_hash',
     'cookie',
-    'db_password'
+    'db_password',
+    'access_token',
+    'refresh_token',
+    'api_key',
+    'apikey',
+    'auth_token'
 ]);
 
 /**
