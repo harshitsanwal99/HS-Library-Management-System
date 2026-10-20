@@ -21,6 +21,7 @@ const assert = require('node:assert/strict');
 const http = require('http');
 const app = require('./server');
 const db = require('./db');
+const { validateIsbnChecksum } = require('./validator');
 
 let server;
 let baseUrl;
@@ -322,6 +323,14 @@ describe('2. Books Module & Strict Input Validation', () => {
         assert.equal(res.status, 400);
         assert.equal(res.data.code, 'VALIDATION_ERROR');
         assert.ok(JSON.stringify(res.data).toLowerCase().includes('isbn'));
+    });
+
+    it('should verify ISBN-10 and ISBN-13 checksum algorithm validation', () => {
+        assert.equal(validateIsbnChecksum('0-306-40615-2'), true);
+        assert.equal(validateIsbnChecksum('978-0-13-449416-6'), true);
+        assert.equal(validateIsbnChecksum('0-306-40615-9'), false);
+        assert.equal(validateIsbnChecksum('978-0-13-449416-0'), false);
+        assert.equal(validateIsbnChecksum(''), false);
     });
 
     it('should successfully add a valid book to library catalog', async () => {
