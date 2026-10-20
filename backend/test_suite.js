@@ -21,7 +21,7 @@ const assert = require('node:assert/strict');
 const http = require('http');
 const app = require('./server');
 const db = require('./db');
-const { validateIsbnChecksum } = require('./validator');
+const { validateIsbnChecksum, calculateOverdueFine } = require('./validator');
 
 let server;
 let baseUrl;
@@ -489,6 +489,25 @@ describe('3. Students Module & Validation', () => {
 // 4. ISSUES & CIRCULATION TRANSACTION SAFETY TESTS
 // =====================================================================
 describe('4. Issues & Circulation Lifecycle', () => {
+
+    it('should verify overdue loan days and fine calculations', () => {
+        const dueDate = new Date('2026-10-01');
+        const onTimeDate = new Date('2026-09-30');
+        const overdueDate = new Date('2026-10-06');
+
+        const resOnTime = calculateOverdueFine(dueDate, onTimeDate, 5, 0);
+        assert.equal(resOnTime.isOverdue, false);
+        assert.equal(resOnTime.fineAmount, 0);
+
+        const resOverdue = calculateOverdueFine(dueDate, overdueDate, 5, 0);
+        assert.equal(resOverdue.isOverdue, true);
+        assert.equal(resOverdue.overdueDays, 5);
+        assert.equal(resOverdue.fineAmount, 25);
+
+        const resGrace = calculateOverdueFine(dueDate, overdueDate, 5, 2);
+        assert.equal(resGrace.isOverdue, true);
+        assert.equal(resGrace.fineAmount, 15);
+    });
 
     it('should successfully issue an available book to a registered student', async () => {
         const res = await request('/api/issues', {
