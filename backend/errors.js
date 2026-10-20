@@ -59,6 +59,18 @@ class ValidationError extends AppError {
     }
 }
 
+class DatabaseConstraintError extends AppError {
+    constructor(message = 'Database constraint violation detected.', details = null) {
+        super(message, 409, 'DATABASE_CONSTRAINT_ERROR', details);
+    }
+}
+
+class TokenExpiredError extends AppError {
+    constructor(message = 'Session token has expired. Please re-authenticate.', code = 'TOKEN_EXPIRED') {
+        super(message, 401, code);
+    }
+}
+
 /**
  * Middleware: Attach unique request ID and timing to every request
  */
@@ -145,6 +157,8 @@ module.exports = {
     NotFoundError,
     ConflictError,
     ValidationError,
+    DatabaseConstraintError,
+    TokenExpiredError,
     requestIdMiddleware,
     notFoundHandler,
     errorHandler,
