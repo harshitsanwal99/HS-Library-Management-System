@@ -3510,3 +3510,33 @@ body {
 
 
 
+
+/* Accessibility Focus Rings & Interactive Form Validation Feedback */
+:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.form-input.is-invalid {
+    border-color: var(--danger) !important;
+    background-color: var(--danger-bg) !important;
+}
+
+.form-input.is-valid {
+    border-color: var(--success) !important;
+    background-color: var(--success-bg) !important;
+}
+
+.validation-feedback {
+    font-size: 0.75rem;
+    margin-top: 0.25rem;
+    font-weight: 500;
+}
+
+.validation-feedback.error {
+    color: var(--danger);
+}
+
+.validation-feedback.success {
+    color: var(--success);
+}
