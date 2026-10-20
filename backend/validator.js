@@ -57,6 +57,37 @@ function validateId(id, fieldName = 'ID') {
 /**
  * Validate and clean ISBN (supports ISBN-10 and ISBN-13 format)
  */
+/**
+ * Validate and clean ISBN (supports ISBN-10 and ISBN-13 format with checksum verification)
+ */
+function validateIsbnChecksum(isbn) {
+    if (!isbn || typeof isbn !== 'string') return false;
+    const clean = isbn.replace(/[\s\-]/g, '').toUpperCase();
+    if (clean.length === 10) {
+        let sum = 0;
+        for (let i = 0; i < 9; i++) {
+            const digit = parseInt(clean[i], 10);
+            if (isNaN(digit)) return false;
+            sum += digit * (10 - i);
+        }
+        const lastChar = clean[9];
+        const lastVal = lastChar === 'X' ? 10 : parseInt(lastChar, 10);
+        if (isNaN(lastVal)) return false;
+        sum += lastVal;
+        return sum % 11 === 0;
+    } else if (clean.length === 13) {
+        let sum = 0;
+        for (let i = 0; i < 12; i++) {
+            const digit = parseInt(clean[i], 10);
+            if (isNaN(digit)) return false;
+            sum += digit * (i % 2 === 0 ? 1 : 3);
+        }
+        const checkDigit = (10 - (sum % 10)) % 10;
+        return checkDigit === parseInt(clean[12], 10);
+    }
+    return false;
+}
+
 function validateIsbn(isbn) {
     if (!isbn || typeof isbn !== 'string') return null;
     const clean = isbn.replace(/[\s\-]/g, '').toUpperCase();
@@ -455,6 +486,7 @@ function validateBugInput(data, isUpdate = false) {
 module.exports = {
     validateId,
     validateIsbn,
+    validateIsbnChecksum,
     validateDateString,
     validateBookInput,
     validateStudentInput,
