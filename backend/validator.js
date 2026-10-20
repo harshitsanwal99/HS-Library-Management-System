@@ -237,6 +237,19 @@ function validateBookInput(data, isUpdate = false) {
 /**
  * Validate Student Payload (for Creation and Update)
  */
+
+/**
+ * Normalize phone number by removing redundant spaces and punctuation
+ */
+function normalizePhoneNumber(phone) {
+    if (!phone || typeof phone !== 'string') return null;
+    const clean = phone.trim();
+    if (!PHONE_REGEX.test(clean)) return null;
+    const hasPlus = clean.startsWith('+');
+    const digitsOnly = clean.replace(/[^0-9]/g, '');
+    return hasPlus ? '+' + digitsOnly : digitsOnly;
+}
+
 function validateStudentInput(data, isUpdate = false) {
     if (!data || typeof data !== 'object') {
         throw new BadRequestError('Request body must be a valid JSON object.');
@@ -287,7 +300,7 @@ function validateStudentInput(data, isUpdate = false) {
         if (typeof phone !== 'string' || !PHONE_REGEX.test(phone.trim())) {
             errors.push({ field: 'phone', message: 'Phone number format is invalid (must be 7-25 digits/symbols).' });
         } else {
-            cleanPhone = phone.trim();
+            cleanPhone = normalizePhoneNumber(phone) || phone.trim();
         }
     }
 
@@ -517,6 +530,7 @@ module.exports = {
     validateIssueInput,
     validateBugInput,
     calculateOverdueFine,
+    normalizePhoneNumber,
     VALID_BUG_MODULES,
     VALID_BUG_SEVERITIES,
     VALID_BUG_STATUSES
