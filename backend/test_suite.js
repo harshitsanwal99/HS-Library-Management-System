@@ -21,7 +21,7 @@ const assert = require('node:assert/strict');
 const http = require('http');
 const app = require('./server');
 const db = require('./db');
-const { validateIsbnChecksum, calculateOverdueFine } = require('./validator');
+const { validateIsbnChecksum, calculateOverdueFine, normalizePhoneNumber } = require('./validator');
 
 let server;
 let baseUrl;
@@ -412,6 +412,13 @@ describe('2. Books Module & Strict Input Validation', () => {
 // 3. STUDENTS MANAGEMENT & VALIDATION TESTS
 // =====================================================================
 describe('3. Students Module & Validation', () => {
+
+    it('should normalize student contact phone numbers', () => {
+        assert.equal(normalizePhoneNumber('+91 98765-43210'), '+919876543210');
+        assert.equal(normalizePhoneNumber('(011) 2345 6789'), '01123456789');
+        assert.equal(normalizePhoneNumber('9999911111'), '9999911111');
+        assert.equal(normalizePhoneNumber('invalid'), null);
+    });
 
     it('should reject student registration with empty student ID (Roll Number)', async () => {
         const res = await request('/api/students', {
