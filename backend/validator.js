@@ -125,6 +125,15 @@ function validateDateString(dateStr, fieldName = 'Date') {
 /**
  * Validate Book Payload (for Creation and Update)
  */
+
+/**
+ * Format string to Title Case for uniform catalog presentation
+ */
+function formatTitleCase(str) {
+    if (!str || typeof str !== 'string') return '';
+    return str.trim().replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase());
+}
+
 function validateBookInput(data, isUpdate = false) {
     if (!data || typeof data !== 'object') {
         throw new BadRequestError('Request body must be a valid JSON object.');
@@ -531,6 +540,7 @@ module.exports = {
     validateBugInput,
     calculateOverdueFine,
     normalizePhoneNumber,
+    formatTitleCase,
     VALID_BUG_MODULES,
     VALID_BUG_SEVERITIES,
     VALID_BUG_STATUSES
