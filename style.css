@@ -2647,6 +2647,7 @@ body {
     color: #FFFFFF;
     text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
     display: -webkit-box;
+    line-clamp: 3;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -2657,6 +2658,7 @@ body {
     color: #D3DEC9;
     font-style: italic;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -2709,6 +2711,7 @@ body {
     line-height: 1.35;
     margin-top: 0.1rem;
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -2724,6 +2727,7 @@ body {
     font-size: 0.82rem;
     color: var(--text-secondary);
     display: -webkit-box;
+    line-clamp: 1;
     -webkit-line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;

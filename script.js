@@ -29,7 +29,12 @@ const state = {
 };
 
 // API Base URL
-const API_BASE = '/api';
+// Intelligent API Base URL (auto-connects to backend on port 5000 if opened via Live Server or file://)
+const API_BASE = (typeof window !== 'undefined' && (
+    window.location.protocol === 'file:' ||
+    (window.location.hostname === 'localhost' && window.location.port && window.location.port !== '5000') ||
+    (window.location.hostname === '127.0.0.1' && window.location.port && window.location.port !== '5000')
+)) ? 'http://localhost:5000/api' : '/api';
 
 // Initialize Application
 document.addEventListener('DOMContentLoaded', async () => {
@@ -3719,8 +3724,7 @@ function exportAuditsToCsv() {
 
     const libName = state.currentUser?.libraryName || 'HS_Library';
     const cleanFileName = `${libName.replace(/\s+/g, '_')}_Audit_Trail_${new Date().toISOString().split('T')[0]}.csv`;
-    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('
-');
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
     downloadFile(csvContent, cleanFileName, 'text/csv;charset=utf-8;');
     showToast('Audit compliance trail exported to CSV.', 'success');
 }
