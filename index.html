@@ -332,6 +332,11 @@
                     <span>Quality & Bug Tracker</span>
                     <span class="nav-counter" id="navBugsCount">0</span>
                 </button>
+                <button class="nav-item" data-tab="audits">
+                    <i data-lucide="file-check-2"></i>
+                    <span>Audit &amp; Compliance Logs</span>
+                    <span class="nav-counter" id="navAuditsCount">0</span>
+                </button>
                 <button class="nav-item" data-tab="about">
                     <i data-lucide="info"></i>
                     <span>About HS Library</span>
@@ -1619,6 +1624,167 @@
                         </div>
                     </div>
                 </section>
+
+                <!-- TAB 10: AUDIT TRAIL & SYSTEM COMPLIANCE -->
+                <section class="tab-pane" id="pane-audits">
+                    <div class="section-header">
+                        <div>
+                            <div class="badge-pill mb-1">
+                                <span class="badge-dot badge-dot-success"></span>
+                                <span>ISO 9001 / SOC-2 Compliance &amp; Traceability Trail</span>
+                            </div>
+                            <h2 class="section-title">Audit Trail &amp; System Governance</h2>
+                            <p class="section-desc">Immutable chronological log of all library transactions, authentication events, catalog changes, and defect modifications.</p>
+                        </div>
+                        <div class="header-actions">
+                            <button class="btn btn-outline" id="btnExportAuditsCsv">
+                                <i data-lucide="download"></i>
+                                <span>Export Audit CSV</span>
+                            </button>
+                            <button class="btn btn-primary" id="btnRefreshAudits">
+                                <i data-lucide="refresh-cw"></i>
+                                <span>Refresh Audit Trail</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Audit KPI Metric Cards -->
+                    <div class="kpi-grid mb-4">
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-primary-soft">
+                                <i data-lucide="shield-check" class="text-primary"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Total Audit Events</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaAuditKpiTotal">0</h3>
+                                    <span class="kpi-subtext">Recorded operations</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-success-soft">
+                                <i data-lucide="book-open" class="text-success"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Catalog Operations</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaAuditKpiBooks">0</h3>
+                                    <span class="badge badge-success">Books Mutated</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-accent-soft">
+                                <i data-lucide="arrow-left-right" class="text-accent"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Circulation Events</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaAuditKpiCirculation">0</h3>
+                                    <span class="kpi-subtext">Issues &amp; Returns</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="card kpi-card">
+                            <div class="kpi-icon-wrap bg-info-soft">
+                                <i data-lucide="user-check" class="text-info"></i>
+                            </div>
+                            <div class="kpi-content">
+                                <span class="kpi-label">Auth &amp; Access Events</span>
+                                <div class="kpi-val-row">
+                                    <h3 class="kpi-value" id="qaAuditKpiAuth">0</h3>
+                                    <span class="kpi-subtext">Security Audits</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Audit Log Table Card -->
+                    <div class="card">
+                        <div class="card-header flex-between flex-wrap gap-3">
+                            <div>
+                                <h3 class="card-title">Institutional Activity Registry</h3>
+                                <p class="card-subtitle">Every modification is stamped with timestamp, user, action code, and IP address.</p>
+                            </div>
+                            <div class="flex-align-gap">
+                                <span class="badge badge-neutral" id="qaAuditCountBadge">0 Records</span>
+                            </div>
+                        </div>
+
+                        <div class="card-body">
+                            <!-- Filters & Search Toolbar -->
+                            <div class="filter-toolbar mb-4">
+                                <div class="search-input-wrap flex-1">
+                                    <i data-lucide="search" class="search-icon"></i>
+                                    <input type="text" id="qaAuditSearchInput" class="form-input search-input" placeholder="Search audit logs by user, action, entity, details...">
+                                </div>
+                                <div class="filter-select-group">
+                                    <select id="qaAuditFilterAction" class="form-select filter-select">
+                                        <option value="">All Actions</option>
+                                        <option value="AUTH_LOGIN">Login</option>
+                                        <option value="AUTH_REGISTER">Register</option>
+                                        <option value="AUTH_LOGOUT">Logout</option>
+                                        <option value="BOOK_CREATE">Book Added</option>
+                                        <option value="BOOK_UPDATE">Book Edited</option>
+                                        <option value="BOOK_DELETE">Book Deleted</option>
+                                        <option value="STUDENT_CREATE">Student Enrolled</option>
+                                        <option value="STUDENT_UPDATE">Student Edited</option>
+                                        <option value="STUDENT_DELETE">Student Deleted</option>
+                                        <option value="BOOK_ISSUE">Book Issued</option>
+                                        <option value="BOOK_RETURN">Book Returned</option>
+                                        <option value="BUG_CREATE">Defect Logged</option>
+                                        <option value="BUG_UPDATE">Defect Updated</option>
+                                        <option value="BUG_DELETE">Defect Removed</option>
+                                    </select>
+                                    <select id="qaAuditFilterEntity" class="form-select filter-select">
+                                        <option value="">All Entities</option>
+                                        <option value="book">Books</option>
+                                        <option value="student">Students</option>
+                                        <option value="issue">Circulation (Issues/Returns)</option>
+                                        <option value="bug">Defects / Bugs</option>
+                                        <option value="librarian">Librarians &amp; Auth</option>
+                                    </select>
+                                    <button class="btn btn-outline btn-sm" id="btnResetAuditFilters" title="Reset Filters">
+                                        <i data-lucide="rotate-ccw"></i>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Audit Table -->
+                            <div class="table-responsive">
+                                <table class="table" id="qaAuditsTable">
+                                    <thead>
+                                        <tr>
+                                            <th>Timestamp</th>
+                                            <th>User</th>
+                                            <th>Action</th>
+                                            <th>Target Entity</th>
+                                            <th>Details / Context</th>
+                                            <th>IP Address</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="qaAuditsTableBody">
+                                        <!-- Loaded dynamically -->
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="empty-state hidden" id="qaAuditsEmptyState">
+                                <div class="empty-state-icon">
+                                    <i data-lucide="file-check-2"></i>
+                                </div>
+                                <h4 class="empty-state-title">No Audit Records Found</h4>
+                                <p class="empty-state-desc">No events match the active search or filter criteria.</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
 
             </main>
         </div>

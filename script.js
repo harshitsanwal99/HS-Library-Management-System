@@ -18,6 +18,7 @@ const state = {
     students: [],
     issues: [],
     bugs: [],
+    auditLogs: [],
     qualitySummary: null,
     errorLogs: [],
     stats: null,
@@ -840,6 +841,35 @@ function initNavigation() {
     if (viewAllActivityBtn) {
         viewAllActivityBtn.addEventListener('click', () => switchTab('history'));
     }
+
+    // Audit Log Listeners
+    const btnExportAudits = document.getElementById('btnExportAuditsCsv');
+    if (btnExportAudits) btnExportAudits.addEventListener('click', exportAuditsToCsv);
+
+    const btnRefreshAudits = document.getElementById('btnRefreshAudits');
+    if (btnRefreshAudits) btnRefreshAudits.addEventListener('click', () => {
+        loadAuditLogsData();
+        loadAuditStats();
+    });
+
+    const qaAuditSearch = document.getElementById('qaAuditSearchInput');
+    if (qaAuditSearch) qaAuditSearch.addEventListener('input', debounce(loadAuditLogsData, 250));
+
+    const qaAuditAction = document.getElementById('qaAuditFilterAction');
+    if (qaAuditAction) qaAuditAction.addEventListener('change', loadAuditLogsData);
+
+    const qaAuditEntity = document.getElementById('qaAuditFilterEntity');
+    if (qaAuditEntity) qaAuditEntity.addEventListener('change', loadAuditLogsData);
+
+    const btnResetAudits = document.getElementById('btnResetAuditFilters');
+    if (btnResetAudits) {
+        btnResetAudits.addEventListener('click', () => {
+            if (qaAuditSearch) qaAuditSearch.value = '';
+            if (qaAuditAction) qaAuditAction.value = '';
+            if (qaAuditEntity) qaAuditEntity.value = '';
+            loadAuditLogsData();
+        });
+    }
 }
 
 function switchTab(tabId) {
@@ -865,7 +895,8 @@ function switchTab(tabId) {
             reports: 'Reports & Analytics',
             about: 'About System',
             settings: 'System Settings',
-            bugs: 'Quality Assurance & Defect Tracker'
+            bugs: 'Quality Assurance & Defect Tracker',
+            audits: 'Audit Trail & Compliance Logs'
         };
         breadcrumb.textContent = titleMap[tabId] || 'HS Library';
     }
@@ -897,6 +928,10 @@ function switchTab(tabId) {
             loadQualitySummary();
             loadBugsData();
             loadErrorLogs();
+            break;
+        case 'audits':
+            loadAuditLogsData();
+            loadAuditStats();
             break;
     }
 
@@ -3539,4 +3574,153 @@ function bindLiveFormValidation(inputElem, validatorFn, errorMsg) {
             }
         }
     });
+}
+
+
+// =============================================================================
+// 13. AUDIT LOGS & COMPLIANCE CONTROLLER (TQM Q09 & ISO 9001)
+// =============================================================================
+
+async function loadAuditLogsData() {
+    const tableBody = document.getElementById('qaAuditsTableBody');
+    const emptyState = document.getElementById('qaAuditsEmptyState');
+    const badgeCount = document.getElementById('qaAuditCountBadge');
+
+    const search = document.getElementById('qaAuditSearchInput')?.value.trim() || '';
+    const actionFilter = document.getElementById('qaAuditFilterAction')?.value || '';
+    const entityFilter = document.getElementById('qaAuditFilterEntity')?.value || '';
+
+    const params = new URLSearchParams();
+    if (search) params.append('search', search);
+    if (actionFilter) params.append('action', actionFilter);
+    if (entityFilter) params.append('entity_type', entityFilter);
+    params.append('limit', '100');
+
+    try {
+        const res = await fetchApi(`/audit-logs?${params.toString()}`);
+        if (!res.ok) throw new Error('Failed to load audit trail');
+        const data = await res.json();
+        const logs = data.logs || [];
+        state.auditLogs = logs;
+
+        if (badgeCount) {
+            badgeCount.textContent = `${data.total || logs.length} Record${(data.total || logs.length) === 1 ? '' : 's'}`;
+        }
+
+        renderAuditsTable(logs);
+    } catch (err) {
+        console.error('Error loading audit logs:', err);
+        showToast('Error syncing audit trail: ' + err.message, 'danger');
+    }
+}
+
+function renderAuditsTable(logs) {
+    const tableBody = document.getElementById('qaAuditsTableBody');
+    const emptyState = document.getElementById('qaAuditsEmptyState');
+    if (!tableBody) return;
+
+    if (!logs || logs.length === 0) {
+        tableBody.innerHTML = '';
+        if (emptyState) emptyState.classList.remove('hidden');
+        return;
+    }
+
+    if (emptyState) emptyState.classList.add('hidden');
+
+    tableBody.innerHTML = logs.map(l => {
+        const timeStr = l.created_at ? new Date(l.created_at).toLocaleString() : '—';
+        let actionBadgeClass = 'badge-neutral';
+        if (l.action.startsWith('AUTH_')) actionBadgeClass = 'badge-primary';
+        else if (l.action.startsWith('BOOK_')) actionBadgeClass = 'badge-success';
+        else if (l.action.startsWith('STUDENT_')) actionBadgeClass = 'badge-info';
+        else if (l.action.startsWith('BUG_')) actionBadgeClass = 'badge-warning';
+
+        let parsedDetails = l.details;
+        if (typeof parsedDetails === 'string') {
+            try {
+                const obj = JSON.parse(parsedDetails);
+                parsedDetails = Object.entries(obj).map(([k, v]) => `${k}: ${v}`).join('; ');
+            } catch (_) {}
+        }
+
+        return `
+            <tr>
+                <td><span style="font-family:monospace; font-size:0.75rem;">${escapeHtml(timeStr)}</span></td>
+                <td>
+                    <div style="font-weight:600;">${escapeHtml(l.user_name || 'System')}</div>
+                    <div style="font-size:0.72rem; color:var(--text-muted);">${escapeHtml(l.user_role || 'librarian')}</div>
+                </td>
+                <td><span class="badge ${actionBadgeClass}">${escapeHtml(l.action)}</span></td>
+                <td>
+                    <strong>${escapeHtml(l.entity_type || '—')}</strong>
+                    ${l.entity_id ? `<span style="font-size:0.75rem; color:var(--text-muted);"> (#${escapeHtml(l.entity_id)})</span>` : ''}
+                </td>
+                <td style="max-width:300px; font-size:0.8rem; color:var(--text-secondary); word-break:break-word;">
+                    ${escapeHtml(parsedDetails || '—')}
+                </td>
+                <td><span style="font-family:monospace; font-size:0.72rem; color:var(--text-muted);">${escapeHtml(l.ip_address || '127.0.0.1')}</span></td>
+            </tr>
+        `;
+    }).join('');
+
+    if (window.lucide) window.lucide.createIcons();
+}
+
+async function loadAuditStats() {
+    try {
+        const res = await fetchApi('/audit-logs/stats');
+        if (!res.ok) return;
+        const data = await res.json();
+
+        const kpiTotal = document.getElementById('qaAuditKpiTotal');
+        const kpiBooks = document.getElementById('qaAuditKpiBooks');
+        const kpiCirc = document.getElementById('qaAuditKpiCirculation');
+        const kpiAuth = document.getElementById('qaAuditKpiAuth');
+        const navAuditsBadge = document.getElementById('navAuditsCount');
+
+        if (kpiTotal) kpiTotal.textContent = data.total || 0;
+        if (navAuditsBadge) {
+            navAuditsBadge.textContent = data.total || 0;
+            navAuditsBadge.style.display = (data.total && data.total > 0) ? 'inline-flex' : 'none';
+        }
+
+        if (data.byEntity && Array.isArray(data.byEntity)) {
+            const bookCount = data.byEntity.find(e => e.entity_type === 'book')?.count || 0;
+            const issueCount = data.byEntity.find(e => e.entity_type === 'issue')?.count || 0;
+            const authCount = (data.byEntity.find(e => e.entity_type === 'librarian')?.count || 0) + (data.byEntity.find(e => e.entity_type === 'session')?.count || 0);
+
+            if (kpiBooks) kpiBooks.textContent = bookCount;
+            if (kpiCirc) kpiCirc.textContent = issueCount;
+            if (kpiAuth) kpiAuth.textContent = authCount;
+        }
+    } catch (err) {
+        console.warn('Failed to load audit stats:', err);
+    }
+}
+
+function exportAuditsToCsv() {
+    if (!state.auditLogs || state.auditLogs.length === 0) {
+        showToast('No audit records available to export.', 'warning');
+        return;
+    }
+
+    const headers = ['Audit ID', 'Timestamp', 'User Name', 'User Role', 'Action', 'Entity Type', 'Entity ID', 'Details', 'IP Address'];
+    const rows = state.auditLogs.map(l => [
+        l.id,
+        l.created_at,
+        `"${escapeCsv(l.user_name || 'System')}"`,
+        `"${escapeCsv(l.user_role || 'librarian')}"`,
+        `"${escapeCsv(l.action)}"`,
+        `"${escapeCsv(l.entity_type || '')}"`,
+        `"${escapeCsv(l.entity_id || '')}"`,
+        `"${escapeCsv(l.details || '')}"`,
+        `"${escapeCsv(l.ip_address || '')}"`
+    ]);
+
+    const libName = state.currentUser?.libraryName || 'HS_Library';
+    const cleanFileName = `${libName.replace(/\s+/g, '_')}_Audit_Trail_${new Date().toISOString().split('T')[0]}.csv`;
+    const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('
+');
+    downloadFile(csvContent, cleanFileName, 'text/csv;charset=utf-8;');
+    showToast('Audit compliance trail exported to CSV.', 'success');
 }

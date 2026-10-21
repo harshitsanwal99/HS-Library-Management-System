@@ -141,6 +141,30 @@ function resetLoginAttempts(req) {
 }
 
 // =====================================================================
+// AUDIT LOGGING HELPER (TQM Q09 & ISO / SOC-2 Compliance)
+// =====================================================================
+
+async function logAudit(req, { action, entityType = null, entityId = null, details = null, libraryId = null, userId = null, userName = null, userRole = null }) {
+    try {
+        const libId = libraryId !== undefined && libraryId !== null ? libraryId : (req?.user?.libraryId || 1);
+        const uId = userId !== undefined ? userId : (req?.user?.librarianId || null);
+        const uName = userName || req?.user?.name || 'System';
+        const uRole = userRole || req?.user?.role || 'librarian';
+        const ip = req?.ip || req?.connection?.remoteAddress || '127.0.0.1';
+        const detailsStr = typeof details === 'object' ? JSON.stringify(details) : (details ? String(details) : null);
+        const entityIdStr = entityId !== null && entityId !== undefined ? String(entityId) : null;
+
+        await db.query(`
+            INSERT INTO audit_logs (library_id, user_id, user_name, user_role, action, entity_type, entity_id, details, ip_address)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `, [libId, uId, uName, uRole, action, entityType, entityIdStr, detailsStr, ip]);
+    } catch (e) {
+        logger.warn(`[HS Audit] Failed to record audit log: ${e.message}`, { action, entityType });
+    }
+}
+
+
+// =====================================================================
 // AUTHENTICATION MIDDLEWARE
 // =====================================================================
 
@@ -285,6 +309,17 @@ app.post('/api/auth/register', async (req, res, next) => {
         }
 
         // Sign token
+                await logAudit(req, {
+            action: 'AUTH_REGISTER',
+            entityType: 'librarian',
+            entityId: result.librarianId,
+            details: { library: cleanLibName, email: cleanEmail },
+            libraryId: result.libraryId,
+            userId: result.librarianId,
+            userName: cleanName,
+            userRole: 'admin'
+        });
+
         const token = jwt.sign({
             librarianId: result.librarianId,
             libraryId: result.libraryId,
@@ -370,6 +405,17 @@ app.post('/api/auth/login', rateLimitLogin, async (req, res, next) => {
 
         // Sign token (longer validity if rememberMe is enabled)
         const tokenExpiry = rememberMe ? '30d' : '24h';
+                await logAudit(req, {
+            action: 'AUTH_LOGIN',
+            entityType: 'librarian',
+            entityId: librarian.id,
+            details: { email: cleanEmail, rememberMe: Boolean(rememberMe) },
+            libraryId: librarian.library_id,
+            userId: librarian.id,
+            userName: librarian.name,
+            userRole: librarian.role
+        });
+
         const token = jwt.sign({
             librarianId: librarian.id,
             libraryId: librarian.library_id,
@@ -438,6 +484,22 @@ app.get('/api/auth/me', authenticateLibrarian, async (req, res, next) => {
  * POST /api/auth/logout
  */
 app.post('/api/auth/logout', (req, res) => {
+    const authHeader = req.headers['authorization'];
+    if (authHeader && authHeader.startsWith('Bearer ')) {
+        try {
+            const decoded = jwt.verify(authHeader.substring(7).trim(), JWT_SECRET);
+            logAudit(req, {
+                action: 'AUTH_LOGOUT',
+                entityType: 'librarian',
+                entityId: decoded.librarianId,
+                details: { email: decoded.email },
+                libraryId: decoded.libraryId,
+                userId: decoded.librarianId,
+                userName: decoded.name,
+                userRole: decoded.role
+            });
+        } catch (_) {}
+    }
     res.json({ success: true, message: 'Logged out successfully.' });
 });
 
@@ -865,6 +927,12 @@ app.post('/api/books', authenticateLibrarian, async (req, res, next) => {
 
         const newBook = await db.query('SELECT * FROM books WHERE id = ? AND library_id = ?', [result.insertId, libraryId]);
         logger.info(`Book added: "${bookData.title}" (ID: ${result.insertId})`, { libraryId, bookId: result.insertId });
+        await logAudit(req, {
+            action: 'BOOK_CREATE',
+            entityType: 'book',
+            entityId: result.insertId,
+            details: { title: bookData.title, author: bookData.author, isbn: bookData.isbn }
+        });
         res.status(201).json(newBook[0]);
     } catch (err) {
         next(err);
@@ -892,6 +960,12 @@ app.put('/api/books/:id', authenticateLibrarian, async (req, res, next) => {
 
         const updated = await db.query('SELECT * FROM books WHERE id = ? AND library_id = ?', [bookId, libraryId]);
         logger.info(`Book updated: "${bookData.title}" (ID: ${bookId})`, { libraryId, bookId });
+        await logAudit(req, {
+            action: 'BOOK_UPDATE',
+            entityType: 'book',
+            entityId: bookId,
+            details: { title: bookData.title, author: bookData.author }
+        });
         res.json(updated[0]);
     } catch (err) {
         next(err);
@@ -927,6 +1001,12 @@ app.delete('/api/books/:id', authenticateLibrarian, async (req, res, next) => {
         });
 
         logger.info(`Book deleted: ID ${bookId}`, { libraryId, bookId });
+        await logAudit(req, {
+            action: 'BOOK_DELETE',
+            entityType: 'book',
+            entityId: bookId,
+            details: { bookId }
+        });
         res.json({ success: true, message: 'Book deleted successfully from your library catalog.' });
     } catch (err) {
         next(err);
@@ -1012,6 +1092,12 @@ app.post('/api/students', authenticateLibrarian, async (req, res, next) => {
 
         const newStudent = await db.query('SELECT * FROM students WHERE id = ? AND library_id = ?', [result.insertId, libraryId]);
         logger.info(`Student registered: "${studentData.name}" (${studentData.student_id})`, { libraryId, studentId: result.insertId });
+        await logAudit(req, {
+            action: 'STUDENT_CREATE',
+            entityType: 'student',
+            entityId: result.insertId,
+            details: { name: studentData.name, studentId: studentData.student_id, department: studentData.department }
+        });
         res.status(201).json(newStudent[0]);
     } catch (err) {
         next(err);
@@ -1082,6 +1168,12 @@ app.put('/api/students/:id', authenticateLibrarian, async (req, res, next) => {
 
         const updated = await db.query('SELECT * FROM students WHERE id = ? AND library_id = ?', [studentId, libraryId]);
         logger.info(`Student updated: "${studentData.name}" (ID: ${studentId})`, { libraryId, studentId });
+        await logAudit(req, {
+            action: 'STUDENT_UPDATE',
+            entityType: 'student',
+            entityId: studentId,
+            details: { name: studentData.name, email: studentData.email }
+        });
         res.json(updated[0]);
     } catch (err) {
         next(err);
@@ -1116,6 +1208,12 @@ app.delete('/api/students/:id', authenticateLibrarian, async (req, res, next) =>
         });
 
         logger.info(`Student deleted: ID ${studentId}`, { libraryId, studentId });
+        await logAudit(req, {
+            action: 'STUDENT_DELETE',
+            entityType: 'student',
+            entityId: studentId,
+            details: { studentId }
+        });
         res.json({ success: true, message: 'Student and loan records removed safely from your library.' });
     } catch (err) {
         next(err);
@@ -1232,6 +1330,12 @@ app.post('/api/issues', authenticateLibrarian, async (req, res, next) => {
         });
 
         logger.info(`Book issued: "${issueResult.bookTitle}" to ${issueResult.studentName} (Issue ID: ${issueResult.issueId})`, { libraryId, issueId: issueResult.issueId });
+        await logAudit(req, {
+            action: 'BOOK_ISSUE',
+            entityType: 'issue',
+            entityId: issueResult.issueId,
+            details: { bookTitle: issueResult.bookTitle, studentName: issueResult.studentName, dueDate: due_date }
+        });
 
         res.status(201).json({
             success: true,
@@ -1295,6 +1399,12 @@ app.post('/api/issues/:id/return', authenticateLibrarian, async (req, res, next)
         });
 
         logger.info(`Book returned: "${returnResult.bookTitle}" by ${returnResult.studentName} (Issue ID: ${issueId})`, { libraryId, issueId });
+        await logAudit(req, {
+            action: 'BOOK_RETURN',
+            entityType: 'issue',
+            entityId: issueId,
+            details: { bookTitle: returnResult.bookTitle, studentName: returnResult.studentName, returnDate: returnResult.returnDate }
+        });
 
         res.json({
             success: true,
@@ -1395,16 +1505,17 @@ app.get('/api/bugs', authenticateLibrarian, async (req, res, next) => {
         const params = [libraryId];
 
         if (status && status !== 'all') {
-            sql += ` AND status = ?`;
-            params.push(status);
+            const normStatus = status.toLowerCase().replace(/_/g, ' ').trim();
+            sql += ` AND LOWER(status) = ?`;
+            params.push(normStatus);
         }
         if (severity && severity !== 'all') {
-            sql += ` AND severity = ?`;
-            params.push(severity);
+            sql += ` AND LOWER(severity) = ?`;
+            params.push(severity.toLowerCase().trim());
         }
         if (bugModule && bugModule !== 'all') {
-            sql += ` AND module = ?`;
-            params.push(bugModule);
+            sql += ` AND LOWER(module) = ?`;
+            params.push(bugModule.toLowerCase().trim());
         }
         if (search && search.trim() !== '') {
             sql += ` AND (title LIKE ? OR description LIKE ? OR fix_details LIKE ? OR CAST(id AS CHAR) LIKE ?)`;
@@ -1445,11 +1556,11 @@ app.get('/api/bugs/stats', authenticateLibrarian, async (req, res, next) => {
         const libraryId = req.user.libraryId;
 
         const totalRows = await db.query('SELECT COUNT(*) as count FROM bugs WHERE library_id = ?', [libraryId]);
-        const openRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND status = 'Open'", [libraryId]);
-        const inProgressRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND status = 'In Progress'", [libraryId]);
-        const resolvedRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND status = 'Resolved'", [libraryId]);
-        const closedRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND status = 'Closed'", [libraryId]);
-        const criticalRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND severity = 'Critical' AND status IN ('Open', 'In Progress')", [libraryId]);
+        const openRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND LOWER(status) = 'open'", [libraryId]);
+        const inProgressRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND LOWER(status) IN ('in progress', 'in_progress')", [libraryId]);
+        const resolvedRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND LOWER(status) IN ('resolved', 'fixed')", [libraryId]);
+        const closedRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND LOWER(status) = 'closed'", [libraryId]);
+        const criticalRows = await db.query("SELECT COUNT(*) as count FROM bugs WHERE library_id = ? AND LOWER(severity) = 'critical' AND LOWER(status) IN ('open', 'in progress', 'in_progress')", [libraryId]);
 
         const moduleBreakdown = await db.query(`
             SELECT module, COUNT(*) as count 
@@ -1522,6 +1633,12 @@ app.post('/api/bugs', authenticateLibrarian, async (req, res, next) => {
 
         const newBug = await db.query('SELECT * FROM bugs WHERE id = ? AND library_id = ?', [result.insertId, libraryId]);
         logger.info(`Defect logged: BUG-${result.insertId} [${clean.severity}] "${clean.title}" by ${reportedBy}`, { libraryId, bugId: result.insertId });
+        await logAudit(req, {
+            action: 'BUG_CREATE',
+            entityType: 'bug',
+            entityId: result.insertId,
+            details: { title: clean.title, severity: clean.severity, status: clean.status, module: clean.module }
+        });
 
         res.status(201).json({
             success: true,
@@ -1580,6 +1697,12 @@ app.put('/api/bugs/:id', authenticateLibrarian, async (req, res, next) => {
 
         const updated = await db.query('SELECT * FROM bugs WHERE id = ? AND library_id = ?', [bugId, libraryId]);
         logger.info(`Defect updated: BUG-${bugId} -> status=${clean.status}`, { libraryId, bugId });
+        await logAudit(req, {
+            action: 'BUG_UPDATE',
+            entityType: 'bug',
+            entityId: bugId,
+            details: { status: clean.status, severity: clean.severity, fixDetails: clean.fix_details }
+        });
 
         res.json({
             success: true,
@@ -1606,6 +1729,12 @@ app.delete('/api/bugs/:id', authenticateLibrarian, async (req, res, next) => {
 
         await db.query('DELETE FROM bugs WHERE id = ? AND library_id = ?', [bugId, libraryId]);
         logger.info(`Defect removed: BUG-${bugId}`, { libraryId, bugId });
+        await logAudit(req, {
+            action: 'BUG_DELETE',
+            entityType: 'bug',
+            entityId: bugId,
+            details: { bugId }
+        });
 
         res.json({ success: true, message: `Bug BUG-${bugId} deleted successfully.` });
     } catch (err) {
@@ -1738,6 +1867,109 @@ app.get('/api/quality/test-runs', authenticateLibrarian, async (req, res, next) 
             };
         });
         res.json(formatted);
+    } catch (err) {
+        next(err);
+    }
+});
+
+
+// =====================================================================
+// 12. AUDIT LOGS & COMPLIANCE TRAIL (TQM Q09 & ISO 9001 / SOC-2)
+// =====================================================================
+
+/**
+ * GET /api/audit-logs (Scoped audit history)
+ */
+app.get('/api/audit-logs', authenticateLibrarian, async (req, res, next) => {
+    try {
+        const libraryId = req.user.libraryId;
+        const { action, entity_type, search, limit = '100', offset = '0' } = req.query;
+
+        let sql = `SELECT * FROM audit_logs WHERE library_id = ?`;
+        const params = [libraryId];
+
+        if (action && action !== 'all') {
+            sql += ` AND LOWER(action) = LOWER(?)`;
+            params.push(action.trim());
+        }
+
+        if (entity_type && entity_type !== 'all') {
+            sql += ` AND LOWER(entity_type) = LOWER(?)`;
+            params.push(entity_type.trim());
+        }
+
+        if (search && search.trim()) {
+            sql += ` AND (action LIKE ? OR entity_type LIKE ? OR entity_id LIKE ? OR details LIKE ? OR user_name LIKE ?)`;
+            const q = `%${search.trim()}%`;
+            params.push(q, q, q, q, q);
+        }
+
+        sql += ` ORDER BY id DESC LIMIT ? OFFSET ?`;
+        const numLimit = Math.min(Math.max(parseInt(limit, 10) || 100, 1), 500);
+        const numOffset = Math.max(parseInt(offset, 10) || 0, 0);
+        params.push(numLimit, numOffset);
+
+        const logs = await db.query(sql, params);
+
+        let countSql = `SELECT COUNT(*) as total FROM audit_logs WHERE library_id = ?`;
+        const countParams = [libraryId];
+        if (action && action !== 'all') {
+            countSql += ` AND LOWER(action) = LOWER(?)`;
+            countParams.push(action.trim());
+        }
+        if (entity_type && entity_type !== 'all') {
+            countSql += ` AND LOWER(entity_type) = LOWER(?)`;
+            countParams.push(entity_type.trim());
+        }
+        if (search && search.trim()) {
+            countSql += ` AND (action LIKE ? OR entity_type LIKE ? OR entity_id LIKE ? OR details LIKE ? OR user_name LIKE ?)`;
+            const q = `%${search.trim()}%`;
+            countParams.push(q, q, q, q, q);
+        }
+        const totalRows = await db.query(countSql, countParams);
+
+        res.json({
+            success: true,
+            total: totalRows[0]?.total || 0,
+            limit: numLimit,
+            offset: numOffset,
+            logs
+        });
+    } catch (err) {
+        next(err);
+    }
+});
+
+/**
+ * GET /api/audit-logs/stats (Audit activity breakdown)
+ */
+app.get('/api/audit-logs/stats', authenticateLibrarian, async (req, res, next) => {
+    try {
+        const libraryId = req.user.libraryId;
+
+        const totalLogs = await db.query('SELECT COUNT(*) as count FROM audit_logs WHERE library_id = ?', [libraryId]);
+        const byAction = await db.query(`
+            SELECT action, COUNT(*) as count 
+            FROM audit_logs 
+            WHERE library_id = ? 
+            GROUP BY action 
+            ORDER BY count DESC 
+            LIMIT 10
+        `, [libraryId]);
+        const byEntity = await db.query(`
+            SELECT entity_type, COUNT(*) as count 
+            FROM audit_logs 
+            WHERE library_id = ? 
+            GROUP BY entity_type 
+            ORDER BY count DESC
+        `, [libraryId]);
+
+        res.json({
+            success: true,
+            total: totalLogs[0]?.count || 0,
+            byAction,
+            byEntity
+        });
     } catch (err) {
         next(err);
     }

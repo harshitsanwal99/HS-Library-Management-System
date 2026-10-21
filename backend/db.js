@@ -10,11 +10,53 @@ let sqliteDb = null;
 let activeDbType = null;
 let dbStatusMessage = '';
 
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_PORT = parseInt(process.env.DB_PORT || '3306', 10);
-const DB_USER = process.env.DB_USER || 'root';
-const DB_PASSWORD = process.env.DB_PASSWORD || '';
-const DB_NAME = process.env.DB_NAME || 'hs_library';
+// Support individual env vars or single-connection DATABASE_URL / MYSQL_URL
+let DB_HOST = process.env.DB_HOST || 'localhost';
+let DB_PORT = parseInt(process.env.DB_PORT || '3306', 10);
+let DB_USER = process.env.DB_USER || 'root';
+let DB_PASSWORD = process.env.DB_PASSWORD || '';
+let DB_NAME = process.env.DB_NAME || 'hs_library';
+
+const rawDbUrl = process.env.DATABASE_URL || process.env.MYSQL_URL || process.env.CLEARDB_DATABASE_URL;
+if (rawDbUrl && typeof rawDbUrl === 'string' && (rawDbUrl.startsWith('mysql://') || rawDbUrl.startsWith('mysql:'))) {
+    try {
+        const parsed = new URL(rawDbUrl);
+        DB_HOST = parsed.hostname;
+        DB_PORT = parsed.port ? parseInt(parsed.port, 10) : 3306;
+        DB_USER = decodeURIComponent(parsed.username || 'root');
+        DB_PASSWORD = decodeURIComponent(parsed.password || '');
+        if (parsed.pathname && parsed.pathname.length > 1) {
+            DB_NAME = parsed.pathname.substring(1).split('?')[0];
+        }
+    } catch (e) {
+        console.warn('[HS Library DB] Failed to parse DATABASE_URL as URL:', e.message);
+    }
+}
+
+/**
+ * Resolve SQLite persistent file path across platforms
+ */
+function resolveSqlitePath() {
+    if (process.env.SQLITE_PATH && process.env.SQLITE_PATH.trim()) {
+        return process.env.SQLITE_PATH.trim();
+    }
+    if (process.env.DATA_DIR && process.env.DATA_DIR.trim()) {
+        const dir = process.env.DATA_DIR.trim();
+        try { fs.mkdirSync(dir, { recursive: true }); } catch (e) {}
+        return path.join(dir, `${DB_NAME}.db`);
+    }
+    if (fs.existsSync('/var/data')) {
+        // Standard Render Persistent Disk mount path
+        return path.join('/var/data', `${DB_NAME}.db`);
+    }
+    if (fs.existsSync('/data')) {
+        return path.join('/data', `${DB_NAME}.db`);
+    }
+    if (process.env.VERCEL) {
+        return path.join('/tmp', `${DB_NAME}.db`);
+    }
+    return path.join(__dirname, `${DB_NAME}.db`);
+}
 
 /**
  * Initialize database connection and run safe multi-library migrations
@@ -28,7 +70,7 @@ async function initDatabase() {
             port: DB_PORT,
             user: DB_USER,
             password: DB_PASSWORD,
-            connectTimeout: 2000
+            connectTimeout: 2500
         });
 
         await testConn.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
@@ -60,14 +102,19 @@ async function initDatabase() {
     // 2. Fallback to Node.js built-in SQLite engine
     try {
         const { DatabaseSync } = require('node:sqlite');
-        const dbPath = process.env.VERCEL ? path.join('/tmp', `${DB_NAME}.db`) : path.join(__dirname, `${DB_NAME}.db`);
+        const dbPath = resolveSqlitePath();
+        const dbDir = path.dirname(dbPath);
+        if (!fs.existsSync(dbDir)) {
+            try { fs.mkdirSync(dbDir, { recursive: true }); } catch (e) {}
+        }
+
         sqliteDb = new DatabaseSync(dbPath);
         sqliteDb.exec('PRAGMA foreign_keys = ON;');
         sqliteDb.exec('PRAGMA journal_mode = WAL;');
         sqliteDb.exec('PRAGMA synchronous = NORMAL;');
 
         activeDbType = 'sqlite';
-        dbStatusMessage = `Operating in persistent SQLite mode [${DB_NAME}.db]. Fully persistent and transactional.`;
+        dbStatusMessage = `Operating in persistent SQLite mode [${dbPath}]. Fully persistent and transactional.`;
         console.log(`[HS Library DB] ${dbStatusMessage}`);
 
         // Ensure multi-tenant SQLite tables and migrations exist
@@ -264,6 +311,27 @@ async function runMySQLMigrations() {
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
     `);
 
+    // 8. Audit Logs Table (TQM Q09 & Security Governance)
+    await mysqlPool.query(`
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            library_id INT NOT NULL,
+            user_id INT DEFAULT NULL,
+            user_name VARCHAR(255) DEFAULT NULL,
+            user_role VARCHAR(50) DEFAULT 'librarian',
+            action VARCHAR(100) NOT NULL,
+            entity_type VARCHAR(50) DEFAULT NULL,
+            entity_id VARCHAR(100) DEFAULT NULL,
+            details TEXT DEFAULT NULL,
+            ip_address VARCHAR(100) DEFAULT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_audit_library (library_id),
+            INDEX idx_audit_action (library_id, action),
+            INDEX idx_audit_entity (library_id, entity_type),
+            INDEX idx_audit_created (library_id, created_at)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+    `);
+
     // Seed default library 1 and librarian if empty
     const [libCount] = await mysqlPool.query('SELECT COUNT(*) as count FROM libraries');
     if (libCount[0].count === 0) {
@@ -452,6 +520,26 @@ function runSQLiteMigrations() {
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         );
         CREATE INDEX IF NOT EXISTS idx_test_runs_date ON test_runs(run_date);
+
+        -- 7. Audit Logs Table (TQM Q09 & Security Governance)
+        CREATE TABLE IF NOT EXISTS audit_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            library_id INTEGER NOT NULL,
+            user_id INTEGER DEFAULT NULL,
+            user_name TEXT DEFAULT NULL,
+            user_role TEXT DEFAULT 'librarian',
+            action TEXT NOT NULL,
+            entity_type TEXT DEFAULT NULL,
+            entity_id TEXT DEFAULT NULL,
+            details TEXT DEFAULT NULL,
+            ip_address TEXT DEFAULT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (library_id) REFERENCES libraries(id) ON DELETE CASCADE
+        );
+        CREATE INDEX IF NOT EXISTS idx_audit_library ON audit_logs(library_id);
+        CREATE INDEX IF NOT EXISTS idx_audit_action ON audit_logs(library_id, action);
+        CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_logs(library_id, entity_type);
+        CREATE INDEX IF NOT EXISTS idx_audit_created ON audit_logs(library_id, created_at);
     `);
 
     // Seed default library and librarian if not present FIRST (to satisfy foreign keys)
@@ -726,8 +814,11 @@ function seedCuratedBooksSQLite(libraryId = 1) {
  * Universal SQL query adapter
  */
 async function query(sql, params = []) {
+    // Sanitize parameters to convert undefined to null (prevents SQLite bind errors)
+    const safeParams = params.map(p => (p === undefined ? null : p));
+
     if (activeDbType === 'mysql') {
-        const [rows] = await mysqlPool.query(sql, params);
+        const [rows] = await mysqlPool.query(sql, safeParams);
         if (rows && typeof rows.insertId !== 'undefined') {
             return { insertId: rows.insertId, affectedRows: rows.affectedRows, changedRows: rows.changedRows };
         }
@@ -742,10 +833,10 @@ async function query(sql, params = []) {
         const trimmed = adaptedSql.trim().toUpperCase();
         if (trimmed.startsWith('SELECT') || trimmed.startsWith('WITH') || trimmed.startsWith('PRAGMA')) {
             const stmt = sqliteDb.prepare(adaptedSql);
-            return stmt.all(...params);
+            return stmt.all(...safeParams);
         } else {
             const stmt = sqliteDb.prepare(adaptedSql);
-            const info = stmt.run(...params);
+            const info = stmt.run(...safeParams);
             return {
                 insertId: Number(info.lastInsertRowid),
                 affectedRows: info.changes,
@@ -785,6 +876,7 @@ async function transaction(workCallback) {
         sqliteDb.exec('BEGIN IMMEDIATE;');
         try {
             const txQuery = async (sql, params = []) => {
+                const safeParams = params.map(p => (p === undefined ? null : p));
                 let adaptedSql = sql
                     .replace(/CURDATE\(\)/gi, "date('now', 'localtime')")
                     .replace(/NOW\(\)/gi, "datetime('now', 'localtime')")
@@ -794,10 +886,10 @@ async function transaction(workCallback) {
                 const trimmed = adaptedSql.trim().toUpperCase();
                 if (trimmed.startsWith('SELECT')) {
                     const stmt = sqliteDb.prepare(adaptedSql);
-                    return stmt.all(...params);
+                    return stmt.all(...safeParams);
                 } else {
                     const stmt = sqliteDb.prepare(adaptedSql);
-                    const info = stmt.run(...params);
+                    const info = stmt.run(...safeParams);
                     return {
                         insertId: Number(info.lastInsertRowid),
                         affectedRows: info.changes

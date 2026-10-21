@@ -11,3 +11,14 @@ services:
         value: production
       - key: JWT_SECRET
         generateValue: true
+      # Optional external MySQL URL (e.g. Aiven, Clever Cloud, PlanetScale, Railway)
+      # If provided, the system automatically runs in High-Availability MySQL mode
+      # - key: DATABASE_URL
+      #   value: mysql://user:password@host:port/database_name
+      # SQLite Persistent Storage directory (mounted via Render Persistent Disk if available)
+      - key: DATA_DIR
+        value: /var/data
+    disk:
+      name: hs-library-data
+      mountPath: /var/data
+      sizeGB: 1

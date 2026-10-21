@@ -881,3 +881,74 @@ describe('8. Quality Dashboard & Transaction Safety', () => {
         assert.deepEqual(db.checkTableIndexes(null), []);
     });
 });
+
+// =====================================================================
+// 9. AUDIT LOGS & SYSTEM GOVERNANCE (TQM Q09)
+// =====================================================================
+describe('9. Audit Logs & System Governance', () => {
+
+    it('should retrieve audit trail events scoped to Library A', async () => {
+        const res = await request('/api/audit-logs', {
+            token: tokenLibA
+        });
+        assert.equal(res.status, 200);
+        assert.ok(res.data.success);
+        assert.ok(Array.isArray(res.data.logs));
+        assert.ok(res.data.total >= 1);
+
+        for (const log of res.data.logs) {
+            assert.equal(log.library_id, libraryIdA);
+        }
+    });
+
+    it('should filter audit logs by action type', async () => {
+        const res = await request('/api/audit-logs?action=BOOK_CREATE', {
+            token: tokenLibA
+        });
+        assert.equal(res.status, 200);
+        assert.ok(Array.isArray(res.data.logs));
+        for (const log of res.data.logs) {
+            assert.equal(log.action, 'BOOK_CREATE');
+        }
+    });
+
+    it('should retrieve audit logs statistics breakdown', async () => {
+        const res = await request('/api/audit-logs/stats', {
+            token: tokenLibA
+        });
+        assert.equal(res.status, 200);
+        assert.ok(res.data.success);
+        assert.ok(res.data.total >= 1);
+        assert.ok(Array.isArray(res.data.byAction));
+        assert.ok(Array.isArray(res.data.byEntity));
+    });
+
+    it('should ensure strict multi-library data isolation for audit logs', async () => {
+        const resB = await request('/api/audit-logs', {
+            token: tokenLibB
+        });
+        assert.equal(resB.status, 200);
+        for (const log of resB.data.logs) {
+            assert.equal(log.library_id, libraryIdB);
+            assert.notEqual(log.library_id, libraryIdA);
+        }
+    });
+
+    it('should support case-insensitive bug status filtering with underscore mapping', async () => {
+        const res = await request('/api/bugs?status=resolved', {
+            token: tokenLibA
+        });
+        assert.equal(res.status, 200);
+        assert.ok(Array.isArray(res.data));
+        assert.ok(res.data.length >= 1);
+        for (const b of res.data) {
+            assert.equal(b.status.toLowerCase(), 'resolved');
+        }
+    });
+
+    it('should safely bind undefined parameters without crashing SQLite engine', async () => {
+        const rows = await db.query('SELECT COUNT(*) as count FROM libraries WHERE id = ? OR ? IS NULL', [libraryIdA, undefined]);
+        assert.ok(Array.isArray(rows));
+        assert.ok(rows[0].count >= 1);
+    });
+});
